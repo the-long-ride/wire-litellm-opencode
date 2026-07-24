@@ -1,0 +1,1872 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LiteLLM Multi-Provider Config Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #171717;
+    --secondary: #4d4d4d;
+    --tertiary: #006bff;
+    --bg-100: #ffffff;
+    --bg-200: #fafafa;
+    --gray-100: #f2f2f2;
+    --gray-200: #ebebeb;
+    --gray-300: #e6e6e6;
+    --gray-400: #eaeaea;
+    --gray-500: #c9c9c9;
+    --gray-600: #a8a8a8;
+    --gray-700: #8f8f8f;
+    --gray-800: #7d7d7d;
+    --gray-900: #4d4d4d;
+    --gray-1000: #171717;
+    --gray-a100: rgba(0,0,0,0.05);
+    --gray-a200: rgba(0,0,0,0.08);
+    --gray-a300: rgba(0,0,0,0.1);
+    --gray-a400: rgba(0,0,0,0.08);
+    --gray-a500: rgba(0,0,0,0.21);
+    --gray-a600: rgba(0,0,0,0.24);
+    --gray-a700: rgba(0,0,0,0.44);
+    --gray-a800: rgba(0,0,0,0.51);
+    --gray-a900: rgba(0,0,0,0.7);
+    --gray-a1000: rgba(0,0,0,0.91);
+    --blue-100: #f0f7ff;
+    --blue-700: #006bff;
+    --red-800: #ea001d;
+    --red-100: #ffeeef;
+    --green-800: #279141;
+    --green-100: #ecfdec;
+    --radius-sm: 6px;
+    --radius-md: 12px;
+  }
+  [data-theme="dark"] {
+    --primary: #ededed;
+    --secondary: #a1a1a1;
+    --bg-100: #0a0a0a;
+    --bg-200: #000000;
+    --gray-100: #1a1a1a;
+    --gray-200: #222222;
+    --gray-300: #2a2a2a;
+    --gray-400: #2e2e2e;
+    --gray-500: #3b3b3b;
+    --gray-600: #5a5a5a;
+    --gray-700: #6f6f6f;
+    --gray-800: #7d7d7d;
+    --gray-900: #a1a1a1;
+    --gray-1000: #ededed;
+    --gray-a100: rgba(255,255,255,0.05);
+    --gray-a200: rgba(255,255,255,0.08);
+    --gray-a300: rgba(255,255,255,0.1);
+    --gray-a400: rgba(255,255,255,0.08);
+    --gray-a500: rgba(255,255,255,0.21);
+    --gray-a600: rgba(255,255,255,0.24);
+    --gray-a700: rgba(255,255,255,0.44);
+    --gray-a800: rgba(255,255,255,0.51);
+    --gray-a900: rgba(255,255,255,0.7);
+    --gray-a1000: rgba(255,255,255,0.91);
+    --blue-100: #001a3a;
+    --blue-700: #48aeff;
+    --red-800: #ff676d;
+    --red-100: #2a0008;
+    --green-800: #4ce15e;
+    --green-100: #003a00;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', 'Geist Sans', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg-200); color: var(--primary); display: flex; flex-direction: row; height: 100vh; overflow: hidden; padding: 0; }
+  h1 { font-size: 16px; font-weight: 600; line-height: 20px; letter-spacing: -0.32px; color: var(--primary); margin-bottom: 12px; display: flex; align-items: center; gap: 12px; }
+  .top-stack { position: fixed; left: 0; top: 0; width: 480px; height: 100vh; z-index: 20; background: var(--bg-200); border-right: 1px solid var(--gray-a300); display: flex; flex-direction: column; gap: 12px; padding: 16px; overflow-y: auto; }
+  .top-row { display: grid; grid-template-columns: 1fr; gap: 12px; align-items: stretch; }
+  .providers { margin-left: 480px; flex: 1; display: flex; flex-direction: column; gap: 12px; padding: 16px; height: 100vh; overflow-y: auto; }
+  .generate-bar { display: flex; flex-direction: column; gap: 10px; }
+  .card { background: var(--bg-100); border: 1px solid var(--gray-a300); border-radius: var(--radius-md); padding: 12px; box-shadow: 0 2px 2px rgba(0,0,0,0.04); }
+  .card-scroll { min-height: 0; overflow-y: auto; }
+  .card-scroll::-webkit-scrollbar { width: 4px; }
+  .card-scroll::-webkit-scrollbar-track { background: transparent; }
+  .card-scroll::-webkit-scrollbar-thumb { background: var(--gray-500); border-radius: 4px; }
+  .card-scroll::-webkit-scrollbar-thumb:hover { background: var(--gray-700); }
+  .card h2 { font-size: 12px; font-weight: 600; line-height: 16px; letter-spacing: -0.28px; color: var(--gray-900); text-transform: uppercase; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+  .providers .card h2 { cursor: pointer; user-select: none; }
+  .providers .card h2::after { content: '▾'; margin-left: auto; font-size: 10px; color: var(--gray-700); }
+  .providers .card.collapsed h2::after { content: '▸'; }
+  .providers .card.collapsed .card-content { display: none; }
+  label { display: block; font-size: 11px; font-weight: 500; color: var(--gray-900); margin-bottom: 3px; line-height: 14px; }
+  textarea, input[type="text"], select { width: 100%; background: var(--bg-100); border: 1px solid var(--gray-a300); border-radius: var(--radius-sm); padding: 0 10px; height: 32px; color: var(--primary); font-size: 12px; font-weight: 400; line-height: 18px; font-family: 'Geist Mono', monospace; outline: none; transition: border-color 0.15s, box-shadow 0.15s; }
+  textarea { padding: 6px 10px; height: auto; min-height: 60px; resize: none; line-height: 18px; }
+  textarea:focus, input[type="text"]:focus, select:focus { border-color: var(--blue-700); box-shadow: 0 0 0 2px var(--bg-100), 0 0 0 4px var(--blue-700); }
+  textarea::placeholder, input::placeholder { color: var(--gray-600); }
+  select { cursor: pointer; -webkit-appearance: none; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' fill='%237d7d7d'%3E%3Cpath d='M2 4l3 3 3-3'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 28px; }
+  .models-section { display: flex; flex-direction: column; gap: 4px; }
+  .model-row { display: flex; gap: 6px; align-items: center; }
+  .model-row input { flex: 1; height: 28px; font-size: 11px; padding: 0 8px; }
+.model-row .rpm-input { flex: 0 0 52px; text-align: center; }
+.model-row .timeout-input { flex: 0 0 56px; text-align: center; }
+.rpm-label { font-size: 9px; color: var(--gray-700); text-transform: uppercase; flex-shrink: 0; width: 28px; text-align: center; }
+.timeout-label { font-size: 9px; color: var(--gray-700); text-transform: uppercase; flex-shrink: 0; width: 40px; text-align: center; }
+.codex-mini { display: inline-flex; align-items: center; gap: 3px; font-size: 9px; color: var(--gray-700); white-space: nowrap; }
+.codex-mini input { width: 13px; height: 13px; accent-color: var(--blue-700); }
+.codex-status-select { flex: 0 0 86px; height: 28px; font-size: 9px; padding: 0 20px 0 6px; }
+.cf-model-row, .gemini-model-row, .openrouter-model-row { display: flex; gap: 6px; align-items: center; }
+.cf-model-row input, .gemini-model-row input, .openrouter-model-row input { flex: 1; height: 28px; font-size: 11px; padding: 0 8px; }
+.reliability-note { margin-top: 8px; padding: 8px; border: 1px solid var(--gray-a300); border-radius: var(--radius-sm); background: var(--gray-100); font-size: 10px; line-height: 15px; color: var(--gray-900); }
+  .model-row .remove-btn { background: var(--bg-100); color: var(--red-800); border: 1px solid var(--gray-a300); border-radius: var(--radius-sm); width: 28px; height: 28px; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; line-height: 1; transition: background 0.1s; }
+  .model-row .remove-btn:hover { background: var(--red-100); border-color: var(--red-800); }
+  .btn { border: none; border-radius: var(--radius-sm); padding: 0 8px; height: 28px; font-size: 12px; font-weight: 500; line-height: 16px; cursor: pointer; transition: background 0.1s; display: inline-flex; align-items: center; gap: 4px; }
+  .btn-primary { background: var(--primary); color: var(--bg-100); }
+  .btn-primary:hover { background: #333; }
+  .btn-primary:focus-visible { box-shadow: 0 0 0 2px var(--bg-100), 0 0 0 4px var(--blue-700); }
+  .btn-secondary { background: var(--bg-100); color: var(--primary); border: 1px solid var(--gray-a400); }
+  .btn-secondary:hover { background: var(--gray-100); }
+  .btn-error { background: var(--red-800); color: #fff; }
+  .btn-error:hover { background: #d8001b; }
+  .btn-generate { width: 100%; justify-content: center; height: auto; min-height: 44px; padding: 12px 20px; border-radius: var(--radius-md); font-size: 14px; font-weight: 600; }
+  .btn-generate.success { background: var(--green-800); }
+  .actions { display: flex; gap: 6px; margin-top: 8px; }
+  .routing-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .routing-row > div { flex: 1; min-width: 80px; }
+  .routing-row input, .routing-row select { width: 100%; height: 28px; font-size: 11px; padding: 0 8px; }
+  .switch { position: relative; display: inline-block; width: 36px; height: 20px; vertical-align: middle; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .switch-slider { position: absolute; cursor: pointer; inset: 0; background: var(--gray-500); border-radius: 20px; transition: background 0.2s; }
+  .switch-slider::before { content: ''; position: absolute; height: 16px; width: 16px; left: 2px; top: 2px; background: #fff; border-radius: 50%; transition: transform 0.2s; }
+  .switch input:checked + .switch-slider { background: var(--blue-700); }
+  .switch input:checked + .switch-slider::before { transform: translateX(16px); }
+  .preset-models { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; align-items: center; }
+  .preset-models label { margin-bottom: 0; font-size: 11px; }
+  .preset-btn { background: var(--bg-100); color: var(--gray-900); border: 1px solid var(--gray-a300); border-radius: var(--radius-sm); padding: 0 6px; height: 24px; font-size: 11px; font-weight: 500; font-family: 'Geist Mono', monospace; cursor: pointer; white-space: nowrap; transition: background 0.1s, border-color 0.1s; }
+  .preset-btn:hover { background: var(--gray-100); border-color: var(--gray-a500); }
+  .preset-btn.active { background: var(--blue-100); border-color: var(--blue-700); color: var(--blue-700); }
+  .count-badge { background: var(--gray-100); color: var(--gray-900); border-radius: 9999px; padding: 0 6px; font-size: 10px; font-weight: 500; }
+  .card-desc { font-size: 11px; color: var(--gray-700); margin-bottom: 8px; }
+  .card-desc a { color: var(--blue-700); text-decoration: none; }
+  .card-desc a:hover { text-decoration: underline; }
+  .keys-area textarea { min-height: 60px; }
+  .keys-area textarea::-webkit-scrollbar { width: 4px; }
+  .keys-area textarea::-webkit-scrollbar-track { background: transparent; }
+  .keys-area textarea::-webkit-scrollbar-thumb { background: var(--gray-500); border-radius: 4px; }
+  .keys-area textarea::-webkit-scrollbar-thumb:hover { background: var(--gray-700); }
+  .key-drop-zone { position: relative; border: 1px dashed transparent; border-radius: var(--radius-sm); padding: 6px; margin: -6px; transition: border-color 0.15s, background 0.15s; }
+  .key-drop-zone.dragging { border-color: var(--blue-700); background: var(--blue-100); }
+  .key-drop-actions { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+  .key-drop-status { flex: 1; min-width: 0; font-size: 10px; line-height: 14px; color: var(--gray-700); }
+  .key-file-input { display: none; }
+  .key-file-button { flex-shrink: 0; }
+  [data-theme="dark"] .card { box-shadow: 0 2px 2px rgba(0,0,0,0.2); }
+  [data-theme="dark"] .btn-primary:hover { background: #e0e0e0; }
+  .theme-toggle { background: var(--bg-100); border: 1px solid var(--gray-a300); border-radius: var(--radius-sm); width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px; color: var(--gray-900); transition: background 0.15s, border-color 0.15s; }
+  .theme-toggle:hover { background: var(--gray-100); border-color: var(--gray-a500); }
+  .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+  @media (max-width: 768px) { .top-stack { position: relative; width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--gray-a300); } .providers { margin-left: 0; height: auto; overflow: visible; } body { flex-direction: column; height: auto; overflow: auto; } }
+  .cf-model-row { display: flex; gap: 6px; align-items: center; }
+  .cf-model-row input { flex: 1; height: 28px; font-size: 11px; padding: 0 8px; }
+  .cf-model-row .remove-btn, .gemini-model-row .remove-btn, .openrouter-model-row .remove-btn { background: var(--bg-100); color: var(--red-800); border: 1px solid var(--gray-a300); border-radius: var(--radius-sm); width: 28px; height: 28px; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; line-height: 1; }
+  .cf-model-row .remove-btn:hover, .gemini-model-row .remove-btn:hover, .openrouter-model-row .remove-btn:hover { background: var(--red-100); border-color: var(--red-800); }
+  .codex-cli-section { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--gray-a300); }
+  .codex-cli-label { font-size: 11px; font-weight: 500; color: var(--gray-900); line-height: 14px; }
+  .codex-cli-buttons { display: flex; gap: 6px; }
+  .codex-cli-buttons > button { flex: 1; height: 32px; font-size: 12px; font-weight: 500; justify-content: center; }
+  .codex-cli-section > button.codex-catalog-btn { height: 32px; font-size: 12px; font-weight: 500; justify-content: center; }
+</style>
+</head>
+<body>
+  <div class="top-stack">
+    <div class="header">
+      <h1>LiteLLM - Config Generator</h1>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme" aria-label="Toggle dark mode">&#9789;</button>
+    </div>
+    <div class="top-row">
+      <div class="card">
+        <h2>Router Settings <span class="count-badge" id="keyCount">0</span></h2>
+        <p class="card-desc"><a href="https://docs.litellm.ai/docs/routing" target="_blank" rel="noopener">Router Docs</a> &mdash; <a href="https://docs.litellm.ai/docs/proxy/config_settings#router_settings---reference" target="_blank" rel="noopener">Settings Reference</a></p>
+        <div class="routing-row">
+          <div>
+            <label>Strategy</label>
+            <select id="routingStrategy">
+              <option value="simple-shuffle" selected>simple-shuffle</option>
+              <option value="round-robin">round-robin</option>
+              <option value="latency-based-routing">latency-based-routing</option>
+              <option value="usage-based-routing-v2">usage-based-routing-v2</option>
+              <option value="usage-based-routing">usage-based-routing</option>
+              <option value="least-busy">least-busy</option>
+              <option value="cost-based-routing">cost-based-routing</option>
+            </select>
+          </div>
+          <div>
+            <label>Retries</label>
+            <input type="text" id="numRetries" value="3">
+          </div>
+          <div>
+            <label>Stream Retries</label>
+            <input type="text" id="streamRetries" value="5" title="Codex CLI stream_max_retries (used in config.toml)">
+          </div>
+          <div>
+            <label>Retry After</label>
+            <input type="text" id="retryAfter" value="5">
+          </div>
+          <div>
+            <label>Allowed Fails</label>
+            <input type="text" id="allowedFails" value="2">
+          </div>
+          <div>
+            <label>Cooldown</label>
+            <input type="text" id="cooldownTime" value="60">
+          </div>
+          <div>
+            <label>Router Timeout</label>
+            <input type="text" id="routerTimeout" value="300" title="Overall LiteLLM router timeout in seconds">
+          </div>
+          <div>
+            <label>Proxy Master Key</label>
+            <input type="text" id="litellmMasterKey" value="anything" title="Default value exported as LITELLM_MASTER_KEY by the generated PowerShell scripts">
+          </div>
+          <div>
+            <label>Model Info</label>
+            <label class="switch"><input type="checkbox" id="includeModelInfo"><span class="switch-slider"></span></label>
+          </div>
+        </div>
+      </div>
+      <div class="generate-bar">
+        <button class="btn btn-primary btn-generate" onclick="generate()">Generate Config</button>
+        <button class="btn btn-primary btn-generate" onclick="generateOpenCode()" style="background:var(--green-800)">Generate opencode.jsonc</button>
+        <button class="btn btn-secondary btn-generate" onclick="copyLiteLLMProviderConfig(event)">Copy LiteLLM Provider Config</button>
+        <p class="card-desc"><strong>Cycle variants in OpenCode:</strong> press <code>Ctrl+T</code> or run <code>/variants</code>. Gemini keeps true runtime effort levels. NVIDIA and Cloudflare reasoning is fixed provider-safely in LiteLLM; their variants change only the output-token ceiling to avoid LiteLLM adapter errors. <strong>Security:</strong> the generated file and copied provider object contain the Proxy Master Key in plaintext.</p>
+        <div class="codex-cli-section">
+          <div class="codex-cli-label">Codex CLI native config.toml (<a href="https://developers.openai.com/codex/config-file/config-reference" target="_blank" rel="noopener">ref</a>)</div>
+          <div class="codex-cli-buttons">
+            <button class="btn btn-secondary" onclick="copyCodexConfig(event)">Copy config.toml</button>
+            <button class="btn btn-secondary" onclick="downloadCodexConfig()">Download config.toml</button>
+          </div>
+          <button class="btn btn-secondary codex-catalog-btn" onclick="downloadCodexCatalog()">Download codex-model-catalog.json</button>
+          <div class="codex-cli-buttons">
+            <button class="btn btn-secondary" onclick="downloadStartLiteLLM()">Start LiteLLM PS1</button>
+            <button class="btn btn-secondary" onclick="downloadSetupCodex()">Setup Codex PS1</button>
+          </div>
+          <div class="codex-cli-buttons">
+            <button class="btn btn-secondary" onclick="downloadTestCodexConnection()">Test Connection PS1</button>
+            <button class="btn btn-secondary" onclick="downloadCodexBundleManifest()">Bundle README</button>
+          </div>
+          <button class="btn btn-secondary codex-catalog-btn" onclick="copyCodexProbe(event)">Copy Codex Responses probe</button>
+          <p class="card-desc">All enabled rows are synchronized across YAML, OpenCode, and the Codex catalog. Codex uses LiteLLM's <code>/v1/responses</code> endpoint. Status is evidence, not filtering: unverified models remain visible until you probe them.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="providers">
+    <div class="card">
+      <h2 onclick="toggleCard(this)">NVIDIA NIM Models</h2>
+      <div class="card-content">
+        <div class="keys-area key-drop-zone" data-key-target="apiKeys" data-key-format="lines" data-key-status="apiKeysDropStatus">
+          <label>One Key Per Line</label>
+          <textarea id="apiKeys" placeholder="nvapi-xxxxx&#10;nvapi-yyyyy&#10;nvapi-zzzzz" rows="6"></textarea>
+          <div class="key-drop-actions">
+            <button type="button" class="btn btn-secondary key-file-button" onclick="chooseKeyFiles('apiKeys')">Load key file</button>
+            <span class="key-drop-status" id="apiKeysDropStatus">Drop text files here. Existing keys are preserved and duplicates removed.</span>
+          </div>
+          <input class="key-file-input" id="apiKeysFileInput" type="file" multiple accept=".txt,.env,.key,.keys,text/plain" onchange="loadSelectedKeyFiles('apiKeys', this.files)">
+        </div>
+        <div class="models-section" id="modelList" style="margin-top:10px;"></div>
+        <div class="actions">
+          <button class="btn btn-secondary" onclick="addModelRow()">+ Add</button>
+          <button class="btn btn-secondary" onclick="addPresetModels()">+ All Presets</button>
+          <button class="btn btn-error" onclick="clearModels()">Clear All</button>
+        </div>
+        <div class="preset-models">
+          <label>Quick Add:</label>
+          <button class="preset-btn" onclick="quickAdd(this.textContent)">deepseek-ai/deepseek-v4-pro</button>
+          <button class="preset-btn" onclick="quickAdd(this.textContent)">qwen/qwen3.5-397b-a17b</button>
+          <button class="preset-btn" onclick="quickAdd(this.textContent)">stepfun-ai/step-3.7-flash</button>
+          <button class="preset-btn" onclick="quickAdd(this.textContent)">openai/gpt-oss-120b</button>
+          <button class="preset-btn" onclick="quickAdd(this.textContent)">minimaxai/minimax-m3</button>
+          <button class="preset-btn" onclick="quickAdd(this.textContent)">nvidia/nemotron-3-ultra-550b-a55b</button>
+          <button class="preset-btn" onclick="quickAdd(this.textContent)">z-ai/glm-5.2</button>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h2 onclick="toggleCard(this)">Cloudflare Models</h2>
+      <div class="card-content">
+        <div class="card-desc">Format: <code>@cf/.../model-name</code></div>
+        <div class="keys-area key-drop-zone" data-key-target="cfKeys" data-key-format="cloudflare-pairs" data-key-status="cfKeysDropStatus">
+          <label>Account ID | API Key (one pair per line)</label>
+          <textarea id="cfKeys" placeholder="YOUR_ACCOUNT_ID|YOUR_API_KEY&#10;ACCOUNT_ID_2|API_KEY_2" rows="4"></textarea>
+          <div class="key-drop-actions">
+            <button type="button" class="btn btn-secondary key-file-button" onclick="chooseKeyFiles('cfKeys')">Load key file</button>
+            <span class="key-drop-status" id="cfKeysDropStatus">Drop text files using Account ID|API Key on each line.</span>
+          </div>
+          <input class="key-file-input" id="cfKeysFileInput" type="file" multiple accept=".txt,.env,.key,.keys,text/plain" onchange="loadSelectedKeyFiles('cfKeys', this.files)">
+        </div>
+        <div class="routing-row" style="margin-top:8px;">
+          <div>
+            <label>Request Timeout</label>
+            <input type="text" id="cfRequestTimeout" value="3000" title="Cloudflare deployment request timeout in seconds">
+          </div>
+          <div>
+            <label>Stream Idle</label>
+            <input type="text" id="cfStreamTimeout" value="300" title="Maximum seconds between streamed chunks">
+          </div>
+          <div>
+            <label>Deployment Retries</label>
+            <input type="text" id="cfMaxRetries" value="1" title="Safe mainly before partial output begins">
+          </div>
+        </div>
+        <div class="reliability-note">Kimi K2.7: <code>stream_timeout</code> detects silent chunk gaps. Do not blindly replay a stream after visible output or a side-effecting tool call.</div>
+        <div class="models-section" id="cfModelList" style="margin-top:10px;"></div>
+        <div class="actions">
+          <button class="btn btn-secondary" onclick="addCfModelRow()">+ Add Model</button>
+          <button class="btn btn-secondary" onclick="addCfPresetModels()">+ All Presets</button>
+          <button class="btn btn-error" onclick="clearCfModels()">Clear Models</button>
+        </div>
+        <div class="actions">
+          <button class="btn btn-secondary" onclick="copyKimiStreamProbe(event)">Copy Kimi Probe</button>
+          <button class="btn btn-secondary" onclick="downloadKimiStreamProbe()">Download Kimi Probe</button>
+        </div>
+        <div class="preset-models" id="cfPresetContainer">
+          <label>Quick Add:</label>
+          <button class="preset-btn" onclick="quickCfAdd(this.textContent)">@cf/zai-org/glm-5.2</button>
+          <button class="preset-btn" onclick="quickCfAdd(this.textContent)">@cf/moonshotai/kimi-k2.7-code</button>
+          <button class="preset-btn" onclick="quickCfAdd(this.textContent)">moonshotai/kimi-k3</button>
+          <button class="preset-btn" onclick="quickCfAdd(this.textContent)">@cf/openai/gpt-oss-120b</button>
+          <button class="preset-btn" onclick="quickCfAdd(this.textContent)">@cf/zai-org/glm-4.7-flash</button>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h2 onclick="toggleCard(this)">Google AI Studio Models</h2>
+      <div class="card-content">
+        <div class="card-desc">Gemini models via Google AI Studio API key</div>
+        <div class="keys-area key-drop-zone" data-key-target="geminiKeys" data-key-format="lines" data-key-status="geminiKeysDropStatus">
+          <label>One Key Per Line</label>
+          <textarea id="geminiKeys" placeholder="AQ..." rows="4"></textarea>
+          <div class="key-drop-actions">
+            <button type="button" class="btn btn-secondary key-file-button" onclick="chooseKeyFiles('geminiKeys')">Load key file</button>
+            <span class="key-drop-status" id="geminiKeysDropStatus">Drop text files here. Existing keys are preserved and duplicates removed.</span>
+          </div>
+          <input class="key-file-input" id="geminiKeysFileInput" type="file" multiple accept=".txt,.env,.key,.keys,text/plain" onchange="loadSelectedKeyFiles('geminiKeys', this.files)">
+        </div>
+        <div class="models-section" id="geminiModelList" style="margin-top:10px;"></div>
+        <div class="actions">
+          <button class="btn btn-secondary" onclick="addGeminiModelRow()">+ Add Model</button>
+          <button class="btn btn-secondary" onclick="addGeminiPresetModels()">+ All Presets</button>
+          <button class="btn btn-error" onclick="clearGeminiModels()">Clear Models</button>
+        </div>
+        <div class="preset-models" id="geminiPresetContainer">
+          <label>Quick Add:</label>
+          <button class="preset-btn" onclick="quickGeminiAdd(this.textContent)">gemini-3.6-flash</button>
+          <button class="preset-btn" onclick="quickGeminiAdd(this.textContent)">gemini-3.5-flash</button>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h2 onclick="toggleCard(this)">OpenRouter Models</h2>
+      <div class="card-content">
+        <div class="card-desc">Format: <code>provider/model-name</code></div>
+        <div class="keys-area key-drop-zone" data-key-target="openrouterKeys" data-key-format="lines" data-key-status="openrouterKeysDropStatus">
+          <label>One Key Per Line</label>
+          <textarea id="openrouterKeys" placeholder="sk-or-v1-..." rows="4"></textarea>
+          <div class="key-drop-actions">
+            <button type="button" class="btn btn-secondary key-file-button" onclick="chooseKeyFiles('openrouterKeys')">Load key file</button>
+            <span class="key-drop-status" id="openrouterKeysDropStatus">Drop text files here. Existing keys are preserved and duplicates removed.</span>
+          </div>
+          <input class="key-file-input" id="openrouterKeysFileInput" type="file" multiple accept=".txt,.env,.key,.keys,text/plain" onchange="loadSelectedKeyFiles('openrouterKeys', this.files)">
+        </div>
+        <div class="models-section" id="openrouterModelList" style="margin-top:10px;"></div>
+        <div class="actions">
+          <button class="btn btn-secondary" onclick="addOpenRouterModelRow()">+ Add Model</button>
+          <button class="btn btn-secondary" onclick="addOpenRouterPresetModels()">+ All Presets</button>
+          <button class="btn btn-error" onclick="clearOpenRouterModels()">Clear Models</button>
+        </div>
+        <div class="preset-models" id="openrouterPresetContainer">
+          <label>Quick Add:</label>
+          <button class="preset-btn" onclick="quickOpenRouterAdd(this.textContent)">poolside/laguna-s-2.1:free</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+const PRESETS = [
+  'deepseek-ai/deepseek-v4-pro',
+  'qwen/qwen3.5-397b-a17b',
+  'stepfun-ai/step-3.7-flash',
+  'openai/gpt-oss-120b',
+  'minimaxai/minimax-m3',
+  'nvidia/nemotron-3-ultra-550b-a55b',
+  'z-ai/glm-5.2'
+];
+
+const CF_PRESETS = [
+  '@cf/zai-org/glm-5.2',
+  '@cf/moonshotai/kimi-k2.7-code',
+  'moonshotai/kimi-k3',
+  '@cf/openai/gpt-oss-120b',
+  '@cf/zai-org/glm-4.7-flash'
+];
+
+const GEMINI_PRESETS = ['gemini-3.6-flash', 'gemini-3.5-flash'];
+const OPENROUTER_PRESETS = ['poolside/laguna-s-2.1:free'];
+
+const MODEL_DISPLAY_NAMES = {
+  'deepseek-ai/deepseek-v4-pro': 'DeepSeek V4 Pro',
+  'qwen/qwen3.5-397b-a17b': 'Qwen 3.5 397B A17B',
+  'stepfun-ai/step-3.7-flash': 'Step 3.7 Flash',
+  'openai/gpt-oss-120b': 'GPT OSS 120B',
+  'minimaxai/minimax-m3': 'MiniMax M3',
+  'nvidia/nemotron-3-ultra-550b-a55b': 'Nemotron 3 Ultra',
+  'z-ai/glm-5.2': 'GLM 5.2',
+  '@cf/zai-org/glm-5.2': 'GLM 5.2',
+  '@cf/moonshotai/kimi-k2.7-code': 'Kimi K2.7 Code',
+  'moonshotai/kimi-k3': 'Kimi K3',
+  '@cf/openai/gpt-oss-120b': 'GPT OSS 120B',
+  '@cf/zai-org/glm-4.7-flash': 'GLM 4.7 Flash',
+  'gemini-3.6-flash': 'Gemini 3.6 Flash',
+  'gemini-3.5-flash': 'Gemini 3.5 Flash',
+  'poolside/laguna-s-2.1:free': 'Laguna S 2.1 Free'
+};
+
+const MODEL_INFO = {
+  'deepseek-ai/deepseek-v4-pro': { max_input_tokens: 1000000, max_tokens: 384000 },
+  'qwen/qwen3.5-397b-a17b': { max_input_tokens: 262144, max_tokens: 65536 },
+  'stepfun-ai/step-3.7-flash': { max_input_tokens: 256000, max_tokens: 256000 },
+  'openai/gpt-oss-120b': { max_input_tokens: 128000, max_tokens: 16384 },
+  'minimaxai/minimax-m3': { max_input_tokens: 512000, max_tokens: 128000 },
+  'nvidia/nemotron-3-ultra-550b-a55b': { max_input_tokens: 220000, max_tokens: 128000 },
+  'z-ai/glm-5.2': { max_input_tokens: 180000, max_tokens: 131072 },
+};
+
+// Cloudflare publishes a combined context window rather than a separate completion cap.
+// OpenCode requires both limit.context and limit.output, so opencode_output_tokens mirrors
+// the documented total context capacity for metadata only. Request max_tokens remains separate.
+const CF_MODEL_INFO = {
+  '@cf/zai-org/glm-5.2': { max_input_tokens: 262144, max_tokens: null, opencode_output_tokens: 262144 },
+  '@cf/moonshotai/kimi-k2.7-code': { max_input_tokens: 262144, max_tokens: null, opencode_output_tokens: 262144 },
+  'moonshotai/kimi-k3': { max_input_tokens: 1048576, max_tokens: null, opencode_output_tokens: 1048576 },
+  '@cf/openai/gpt-oss-120b': { max_input_tokens: 128000, max_tokens: null, opencode_output_tokens: 128000 },
+  '@cf/zai-org/glm-4.7-flash': { max_input_tokens: 131072, max_tokens: null, opencode_output_tokens: 131072 },
+};
+
+const GEMINI_MODEL_INFO = {
+  'gemini-3.6-flash': { max_input_tokens: 1048576, max_tokens: 65536 },
+  'gemini-3.5-flash': { max_input_tokens: 1048576, max_tokens: 65536 }
+};
+
+const OPENROUTER_MODEL_INFO = {
+  'poolside/laguna-s-2.1:free': { max_input_tokens: 220000, max_tokens: 65536 }
+};
+
+const REASONING_LEVELS = {
+  medium: { label: 'Medium', recommendedMaxTokens: 32768 },
+  high: { label: 'High', recommendedMaxTokens: 49152 },
+  max: { label: 'Max', recommendedMaxTokens: 65536 }
+};
+
+const REASONING_CAPABILITIES = {
+  nvidia: {
+    'nvidia/nemotron-3-ultra-550b-a55b': {
+      kind: 'thinking-token-budget',
+      budgetParam: 'reasoning_budget',
+      budgets: { medium: 8192, high: 16384, max: 32768 },
+      runtimeReasoning: false,
+      outputVariants: true,
+      dropUnsupportedParams: true,
+      staticLitellmParams: {
+        extra_body: {
+          chat_template_kwargs: { enable_thinking: true, force_nonempty_content: true },
+          reasoning_budget: 32768
+        }
+      }
+    },
+    'openai/gpt-oss-120b': {
+      kind: 'effort-enum', highest: 'high',
+      runtimeReasoning: false,
+      outputVariants: true,
+      dropUnsupportedParams: true,
+      staticLitellmParams: { extra_body: { reasoning_effort: 'high' } }
+    },
+    'deepseek-ai/deepseek-v4-pro': {
+      kind: 'effort-with-thinking',
+      lowest: 'high',
+      highest: 'max',
+      runtimeReasoning: false,
+      outputVariants: true,
+      dropUnsupportedParams: true,
+      staticLitellmParams: {
+        extra_body: {
+          chat_template_kwargs: { thinking: true, reasoning_effort: 'max' }
+        }
+      }
+    },
+    'qwen/qwen3.5-397b-a17b': {
+      kind: 'thinking-toggle', key: 'enable_thinking',
+      runtimeReasoning: false,
+      outputVariants: true,
+      dropUnsupportedParams: true,
+      staticLitellmParams: {
+        extra_body: { chat_template_kwargs: { enable_thinking: true } }
+      }
+    },
+    'stepfun-ai/step-3.7-flash': {
+      kind: 'provider-default',
+      runtimeReasoning: false,
+      outputVariants: true,
+      dropUnsupportedParams: true
+    },
+    'minimaxai/minimax-m3': {
+      kind: 'thinking-toggle', key: 'thinking',
+      runtimeReasoning: false,
+      outputVariants: true,
+      dropUnsupportedParams: true,
+      staticLitellmParams: {
+        extra_body: { chat_template_kwargs: { thinking: true } }
+      }
+    },
+    'z-ai/glm-5.2': {
+      kind: 'effort-enum', highest: 'max',
+      runtimeReasoning: false,
+      outputVariants: true,
+      dropUnsupportedParams: true,
+      staticLitellmParams: { extra_body: { reasoning_effort: 'max' } }
+    },
+    default: {
+      kind: 'provider-default',
+      runtimeReasoning: false,
+      outputVariants: true,
+      dropUnsupportedParams: true
+    }
+  },
+  cloudflare: {
+    '@cf/moonshotai/kimi-k2.7-code': {
+      kind: 'kimi-thinking',
+      runtimeReasoning: false,
+      outputVariants: true,
+      dropUnsupportedParams: true,
+      staticLitellmParams: {
+        extra_body: { chat_template_kwargs: { thinking: 'max' } }
+      }
+    },
+    '@cf/openai/gpt-oss-120b': {
+      kind: 'effort-enum', highest: 'high',
+      runtimeReasoning: false,
+      outputVariants: true,
+      dropUnsupportedParams: true,
+      staticLitellmParams: { extra_body: { reasoning_effort: 'high' } }
+    },
+    'moonshotai/kimi-k3': {
+      kind: 'effort-enum', highest: 'max',
+      runtimeReasoning: false,
+      outputVariants: true,
+      dropUnsupportedParams: true,
+      staticLitellmParams: { extra_body: { reasoning_effort: 'max' } }
+    },
+    '@cf/zai-org/glm-5.2': {
+      kind: 'effort-enum', highest: 'high',
+      runtimeReasoning: false,
+      outputVariants: true,
+      dropUnsupportedParams: true,
+      staticLitellmParams: { extra_body: { reasoning_effort: 'high' } }
+    },
+    '@cf/zai-org/glm-4.7-flash': {
+      kind: 'effort-enum', highest: 'high',
+      runtimeReasoning: false,
+      outputVariants: true,
+      dropUnsupportedParams: true,
+      staticLitellmParams: { extra_body: { reasoning_effort: 'high' } }
+    },
+    default: {
+      kind: 'provider-default',
+      runtimeReasoning: false,
+      outputVariants: true,
+      dropUnsupportedParams: true
+    }
+  },
+  gemini: {
+    default: { kind: 'effort-enum', highest: 'high', runtimeReasoning: true, outputVariants: true }
+  },
+  openrouter: {
+    'poolside/laguna-s-2.1:free': {
+      kind: 'effort-enum', highest: 'max',
+      allowedOpenAIParams: ['reasoning_effort'],
+      runtimeReasoning: true,
+      outputVariants: true
+    },
+    default: { kind: 'provider-default' }
+  }
+};
+
+function normalizeReasoningLevel(level) {
+  const normalized = String(level || 'max').toLowerCase();
+  return REASONING_LEVELS[normalized] ? normalized : 'max';
+}
+
+function resolveReasoningProfile(provider, model, requestedLevel) {
+  const requested = normalizeReasoningLevel(requestedLevel);
+  const providerCaps = REASONING_CAPABILITIES[provider] || { default: { kind: 'provider-default' } };
+  const capability = providerCaps[model] || providerCaps.default || { kind: 'provider-default' };
+  let effectiveLevel = requested;
+  let isAlias = false;
+  let verified = true;
+  let note = '';
+  let params = {};
+
+  if (capability.kind === 'effort-enum') {
+    if (requested === 'max' && capability.highest === 'high') {
+      effectiveLevel = 'high';
+      isAlias = true;
+      note = 'Max aliases to the provider maximum High level.';
+    }
+    params = { reasoning_effort: effectiveLevel };
+  } else if (capability.kind === 'effort-with-thinking') {
+    if (requested === 'medium' && capability.lowest === 'high') {
+      effectiveLevel = 'high';
+      isAlias = true;
+      note = "Medium aliases to this model's minimum documented High effort.";
+    }
+    params = { reasoning_effort: effectiveLevel };
+  } else if (capability.kind === 'thinking-token-budget') {
+    params = {
+      extra_body: {
+        chat_template_kwargs: { enable_thinking: true, force_nonempty_content: true },
+        [capability.budgetParam || 'reasoning_budget']: capability.budgets[requested]
+      }
+    };
+  } else if (capability.kind === 'thinking-toggle') {
+    params = { extra_body: { chat_template_kwargs: { [capability.key]: true } } };
+    note = 'This model exposes a thinking toggle; Medium/High/Max differ only by the requested profile label and output allowance.';
+    verified = false;
+  } else {
+    effectiveLevel = 'provider-default';
+    params = {};
+    note = 'No graded reasoning control is documented for this model; provider defaults are preserved.';
+    verified = false;
+  }
+
+  return {
+    provider,
+    model,
+    requestedLevel: requested,
+    effectiveLevel,
+    isAlias,
+    verified,
+    controlKind: capability.kind,
+    note,
+    params,
+    recommendedMaxTokens: REASONING_LEVELS[requested].recommendedMaxTokens
+  };
+}
+
+function yamlScalar(value) {
+  if (typeof value === 'boolean' || typeof value === 'number') return String(value);
+  if (value === null) return 'null';
+  return JSON.stringify(String(value));
+}
+
+function appendYamlObject(obj, indent) {
+  const spaces = ' '.repeat(indent);
+  let yaml = '';
+  Object.entries(obj || {}).forEach(([key, value]) => {
+    if (value && typeof value === 'object' && !Array.isArray(value)) {
+      yaml += `${spaces}${key}:\n`;
+      yaml += appendYamlObject(value, indent + 2);
+    } else {
+      yaml += `${spaces}${key}: ${yamlScalar(value)}\n`;
+    }
+  });
+  return yaml;
+}
+
+function litellmDynamicParamPolicy(deployment) {
+  const providerCaps = REASONING_CAPABILITIES[deployment?.provider] || {};
+  const capability = providerCaps[deployment?.model] || providerCaps.default || {};
+  return {
+    allowedOpenAIParams: [...(capability.allowedOpenAIParams || [])],
+    dropUnsupportedParams: Boolean(capability.dropUnsupportedParams),
+    staticLitellmParams: capability.staticLitellmParams || {}
+  };
+}
+
+function appendLiteLLMDynamicParamPolicy(deployment, indent) {
+  const policy = litellmDynamicParamPolicy(deployment);
+  const spaces = ' '.repeat(indent);
+  let yaml = '';
+  if (policy.allowedOpenAIParams.length > 0) {
+    yaml += `${spaces}allowed_openai_params:
+`;
+    policy.allowedOpenAIParams.forEach(param => { yaml += `${spaces}  - ${param}
+`; });
+  }
+  if (policy.dropUnsupportedParams) yaml += `${spaces}drop_params: true
+`;
+  if (Object.keys(policy.staticLitellmParams).length > 0) {
+    yaml += appendYamlObject(policy.staticLitellmParams, indent);
+  }
+  return yaml;
+}
+
+function renderReasoningYaml(profile, indent) {
+  const spaces = ' '.repeat(indent);
+  const status = profile.verified ? 'verified' : 'provider-specific';
+  let yaml = `${spaces}# reasoning: requested=${profile.requestedLevel} effective=${profile.effectiveLevel} contract=${profile.controlKind} status=${status}\n`;
+  if (profile.note) yaml += `${spaces}# ${profile.note}\n`;
+  yaml += appendYamlObject(profile.params, indent);
+  return yaml;
+}
+
+function getKeys() {
+  return document.getElementById('apiKeys').value.split('\n').map(k => k.trim()).filter(k => k.length > 0);
+}
+
+document.getElementById('apiKeys').addEventListener('input', updateKeyCount);
+document.getElementById('cfKeys').addEventListener('input', updateKeyCount);
+document.getElementById('geminiKeys').addEventListener('input', updateKeyCount);
+document.getElementById('openrouterKeys').addEventListener('input', updateKeyCount);
+function updateKeyCount() {
+  const total = getKeys().length + getCfKeys().length + getGeminiKeys().length + getOpenRouterKeys().length;
+  document.getElementById('keyCount').textContent = total;
+  document.getElementById('numRetries').value = total;
+  document.getElementById('allowedFails').value = total;
+}
+
+function reasoningOptions(selected) {
+  const current = normalizeReasoningLevel(selected || 'max');
+  return Object.entries(REASONING_LEVELS).map(([value, info]) => `<option value="${value}"${value === current ? ' selected' : ''}>${info.label}</option>`).join('');
+}
+
+function codexStatusOptions(selected) {
+  const current = ['unverified', 'verified', 'failed'].includes(selected) ? selected : 'unverified';
+  return ['unverified', 'verified', 'failed'].map(value => `<option value="${value}"${value === current ? ' selected' : ''}>${value}</option>`).join('');
+}
+
+function modelMetadata(provider, model) {
+  const infoSource = provider === 'nvidia' ? MODEL_INFO : provider === 'cloudflare' ? CF_MODEL_INFO : provider === 'gemini' ? GEMINI_MODEL_INFO : OPENROUTER_MODEL_INFO;
+  const info = infoSource[model] || {};
+  const baseName = MODEL_DISPLAY_NAMES[model] || (model.split('/').pop() || model).replace(/[-_]/g, ' ').replace(/\w/g, ch => ch.toUpperCase());
+  if (provider === 'nvidia') {
+    return {
+      upstreamModel: `nvidia_nim/${model}`,
+      proxyModel: model,
+      displayName: `NVIDIA NIM - ${baseName}`,
+      contextLimit: info.max_input_tokens || null,
+      outputLimit: info.max_tokens || null
+    };
+  }
+  if (provider === 'cloudflare') {
+    const normalized = model.replace(/^@cf\//, '');
+    return {
+      upstreamModel: `openai/${model}`,
+      proxyModel: `cloudflare/${normalized}`,
+      displayName: `Cloudflare - ${baseName}`,
+      contextLimit: info.max_input_tokens || null,
+      outputLimit: info.max_tokens || null,
+      opencodeOutputLimit: info.opencode_output_tokens || info.max_tokens || null
+    };
+  }
+  if (provider === 'gemini') {
+    return {
+      upstreamModel: `gemini/${model}`,
+      proxyModel: model,
+      displayName: `Google AI Studio - ${baseName}`,
+      contextLimit: info.max_input_tokens || null,
+      outputLimit: info.max_tokens || null
+    };
+  }
+  return {
+    upstreamModel: `openrouter/${model}`,
+    proxyModel: `openrouter/${model}`,
+    displayName: `OpenRouter - ${baseName}`,
+    contextLimit: info.max_input_tokens || null,
+    outputLimit: info.max_tokens || null
+  };
+}
+
+function collectSelectedDeploymentsFromRows(rows) {
+  const deployments = [];
+  ['nvidia', 'cloudflare', 'gemini', 'openrouter'].forEach(provider => {
+    (rows[provider] || []).forEach(row => {
+      const model = String(row.model || '').trim();
+      if (!model) return;
+      const metadata = modelMetadata(provider, model);
+      const reasoningLevel = 'max';
+      deployments.push({
+        provider,
+        model,
+        ...metadata,
+        reasoningLevel,
+        reasoningProfile: resolveReasoningProfile(provider, model, reasoningLevel),
+        rpm: String(row.rpm || '40'),
+        timeout: String(row.timeout || '1000'),
+        codexEnabled: row.codexEnabled !== false,
+        codexStatus: ['unverified', 'verified', 'failed'].includes(row.codexStatus) ? row.codexStatus : 'unverified'
+      });
+    });
+  });
+  return deployments;
+}
+
+function collectSelectedDeployments() {
+  const readRows = (selector, modelSelector) => [...document.querySelectorAll(selector)].map(row => ({
+    model: row.querySelector(modelSelector)?.value || '',
+    rpm: row.querySelector('.rpm-input')?.value || '40',
+    timeout: row.querySelector('.timeout-input')?.value || '1000',
+    codexEnabled: row.querySelector('.codex-enabled-input')?.checked !== false,
+    codexStatus: row.querySelector('.codex-status-select')?.value || 'unverified'
+  }));
+  return collectSelectedDeploymentsFromRows({
+    nvidia: readRows('.model-row', '.model-name-input'),
+    cloudflare: readRows('.cf-model-row', '.cf-model-name-input'),
+    gemini: readRows('.gemini-model-row', '.gemini-model-name-input'),
+    openrouter: readRows('.openrouter-model-row', '.openrouter-model-name-input')
+  });
+}
+
+function addModelRow(value) {
+  const div = document.createElement('div');
+  div.className = 'model-row';
+  div.innerHTML = `<input class="model-name-input" type="text" placeholder="e.g. deepseek-ai/deepseek-v4-pro" value="${value || ''}"><span class="rpm-label">RPM</span><input class="rpm-input" type="text" value="40"><span class="timeout-label">T/O</span><input class="timeout-input" type="text" value="1000"><label class="codex-mini"><input class="codex-enabled-input" type="checkbox" checked>Codex</label><select class="codex-status-select" title="Codex Responses/tool probe status">${codexStatusOptions('unverified')}</select><button class="remove-btn" onclick="this.parentElement.remove(); updatePresetHighlights();">&times;</button>`;
+  document.getElementById('modelList').appendChild(div);
+  updatePresetHighlights();
+}
+
+function updatePresetHighlights() {
+  const active = [...document.querySelectorAll('.model-name-input')].map(i => i.value.trim());
+  document.querySelectorAll('.preset-btn').forEach(btn => {
+    btn.classList.toggle('active', active.includes(btn.textContent.trim()));
+  });
+}
+
+function quickAdd(name) {
+  const existing = [...document.querySelectorAll('.model-name-input')].map(i => i.value.trim());
+  if (existing.includes(name)) return;
+  addModelRow(name);
+}
+
+function addPresetModels() {
+  PRESETS.forEach(p => quickAdd(p));
+}
+
+function clearModels() {
+  document.getElementById('modelList').innerHTML = '';
+  updatePresetHighlights();
+}
+
+function getCfModels() {
+  return [...document.querySelectorAll('.cf-model-name-input')].map(i => i.value.trim()).filter(v => v.length > 0);
+}
+
+function getModels() {
+  return [...document.querySelectorAll('.model-name-input')].map(i => i.value.trim()).filter(v => v.length > 0);
+}
+
+function getCfKeys() {
+  const text = document.getElementById('cfKeys').value;
+  if (!text.trim()) return [];
+  return text.split('\n').map(line => {
+    const parts = line.trim().split('|');
+    if (parts.length >= 2) {
+      const accountId = parts[0].trim();
+      const apiKey = parts.slice(1).join('|').trim();
+      return { accountId, apiKey };
+    }
+    return null;
+  }).filter(k => k && k.accountId && k.apiKey);
+}
+
+function addCfModelRow(value) {
+  const div = document.createElement('div');
+  div.className = 'cf-model-row';
+  div.innerHTML = `<input class="cf-model-name-input" type="text" placeholder="e.g. @cf/zai-org/glm-5.2" value="${value || ''}"><label class="codex-mini"><input class="codex-enabled-input" type="checkbox" checked>Codex</label><select class="codex-status-select" title="Codex Responses/tool probe status">${codexStatusOptions('unverified')}</select><button class="remove-btn" onclick="this.parentElement.remove(); updateCfPresetHighlights();">&times;</button>`;
+  document.getElementById('cfModelList').appendChild(div);
+  updateCfPresetHighlights();
+}
+
+function updateCfPresetHighlights() {
+  const active = [...document.querySelectorAll('.cf-model-name-input')].map(i => i.value.trim());
+  document.querySelectorAll('#cfPresetContainer .preset-btn').forEach(btn => {
+    btn.classList.toggle('active', active.includes(btn.textContent.trim()));
+  });
+}
+
+function quickCfAdd(name) {
+  const existing = [...document.querySelectorAll('.cf-model-name-input')].map(i => i.value.trim());
+  if (existing.includes(name)) return;
+  addCfModelRow(name);
+}
+
+function addCfPresetModels() {
+  CF_PRESETS.forEach(p => quickCfAdd(p));
+}
+
+function clearCfModels() {
+  document.getElementById('cfModelList').innerHTML = '';
+  updateCfPresetHighlights();
+}
+
+function getGeminiKeys() {
+  return document.getElementById('geminiKeys').value.split('\n').map(k => k.trim()).filter(k => k.length > 0);
+}
+
+function getGeminiModels() {
+  return [...document.querySelectorAll('.gemini-model-name-input')].map(i => i.value.trim()).filter(v => v.length > 0);
+}
+
+function addGeminiModelRow(value) {
+  const div = document.createElement('div');
+  div.className = 'gemini-model-row';
+  div.innerHTML = `<input class="gemini-model-name-input" type="text" placeholder="e.g. gemini-3.6-flash" value="${value || ''}"><label class="codex-mini"><input class="codex-enabled-input" type="checkbox" checked>Codex</label><select class="codex-status-select" title="Codex Responses/tool probe status">${codexStatusOptions('unverified')}</select><button class="remove-btn" onclick="this.parentElement.remove(); updateGeminiPresetHighlights();">&times;</button>`;
+  document.getElementById('geminiModelList').appendChild(div);
+  updateGeminiPresetHighlights();
+}
+
+function updateGeminiPresetHighlights() {
+  const active = [...document.querySelectorAll('.gemini-model-name-input')].map(i => i.value.trim());
+  document.querySelectorAll('#geminiPresetContainer .preset-btn').forEach(btn => {
+    btn.classList.toggle('active', active.includes(btn.textContent.trim()));
+  });
+}
+
+function quickGeminiAdd(name) {
+  const existing = [...document.querySelectorAll('.gemini-model-name-input')].map(i => i.value.trim());
+  if (existing.includes(name)) return;
+  addGeminiModelRow(name);
+}
+
+function addGeminiPresetModels() {
+  GEMINI_PRESETS.forEach(p => quickGeminiAdd(p));
+}
+
+function clearGeminiModels() {
+  document.getElementById('geminiModelList').innerHTML = '';
+  updateGeminiPresetHighlights();
+}
+
+function getOpenRouterKeys() {
+  return document.getElementById('openrouterKeys').value.split('\n').map(k => k.trim()).filter(k => k.length > 0);
+}
+
+function getOpenRouterModels() {
+  return [...document.querySelectorAll('.openrouter-model-name-input')].map(i => i.value.trim()).filter(v => v.length > 0);
+}
+
+function addOpenRouterModelRow(value) {
+  const div = document.createElement('div');
+  div.className = 'openrouter-model-row';
+  div.innerHTML = `<input class="openrouter-model-name-input" type="text" placeholder="e.g. poolside/laguna-s-2.1:free" value="${value || ''}"><label class="codex-mini"><input class="codex-enabled-input" type="checkbox" checked>Codex</label><select class="codex-status-select" title="Codex Responses/tool probe status">${codexStatusOptions('unverified')}</select><button class="remove-btn" onclick="this.parentElement.remove(); updateOpenRouterPresetHighlights();">&times;</button>`;
+  document.getElementById('openrouterModelList').appendChild(div);
+  updateOpenRouterPresetHighlights();
+}
+
+function updateOpenRouterPresetHighlights() {
+  const active = [...document.querySelectorAll('.openrouter-model-name-input')].map(i => i.value.trim());
+  document.querySelectorAll('#openrouterPresetContainer .preset-btn').forEach(btn => {
+    btn.classList.toggle('active', active.includes(btn.textContent.trim()));
+  });
+}
+
+function quickOpenRouterAdd(name) {
+  const existing = [...document.querySelectorAll('.openrouter-model-name-input')].map(i => i.value.trim());
+  if (existing.includes(name)) return;
+  addOpenRouterModelRow(name);
+}
+
+function addOpenRouterPresetModels() {
+  OPENROUTER_PRESETS.forEach(p => quickOpenRouterAdd(p));
+}
+
+function clearOpenRouterModels() {
+  document.getElementById('openrouterModelList').innerHTML = '';
+  updateOpenRouterPresetHighlights();
+}
+
+function normalizeDroppedKeyText(text, format) {
+  const lines = String(text || '')
+    .replace(/^\uFEFF/, '')
+    .replace(/\r\n?/g, '\n')
+    .split('\n')
+    .map(line => line.trim())
+    .filter(Boolean);
+
+  if (format === 'cloudflare-pairs') {
+    return [...new Set(lines.map((line, index) => {
+      const separator = line.indexOf('|');
+      const accountId = separator >= 0 ? line.slice(0, separator).trim() : '';
+      const apiKey = separator >= 0 ? line.slice(separator + 1).trim() : '';
+      if (!accountId || !apiKey) {
+        throw new Error(`Line ${index + 1} must use Account ID|API Key format.`);
+      }
+      return `${accountId}|${apiKey}`;
+    }))].join('\n');
+  }
+
+  return [...new Set(lines)].join('\n');
+}
+
+function mergeKeyText(existingText, incomingText) {
+  const lines = `${existingText || ''}\n${incomingText || ''}`
+    .replace(/\r\n?/g, '\n')
+    .split('\n')
+    .map(line => line.trim())
+    .filter(Boolean);
+  return [...new Set(lines)].join('\n');
+}
+
+function keyDropZoneFor(targetId) {
+  return document.querySelector(`.key-drop-zone[data-key-target="${targetId}"]`);
+}
+
+function setKeyDropStatus(zone, message, isError) {
+  if (!zone) return;
+  const status = document.getElementById(zone.dataset.keyStatus || '');
+  if (!status) return;
+  status.textContent = message;
+  status.style.color = isError ? 'var(--red-800)' : 'var(--green-800)';
+}
+
+async function loadKeyFilesIntoTextarea(targetId, files) {
+  const zone = keyDropZoneFor(targetId);
+  const textarea = document.getElementById(targetId);
+  if (!zone || !textarea) throw new Error(`Unknown key input: ${targetId}`);
+  const selectedFiles = Array.from(files || []);
+  if (selectedFiles.length === 0) return 0;
+
+  const chunks = [];
+  for (const file of selectedFiles) {
+    if (file.size > 1024 * 1024) throw new Error(`${file.name} is larger than 1 MB.`);
+    chunks.push(normalizeDroppedKeyText(await file.text(), zone.dataset.keyFormat || 'lines'));
+  }
+
+  textarea.value = mergeKeyText(textarea.value, chunks.join('\n'));
+  textarea.dispatchEvent(new Event('input', { bubbles: true }));
+  setKeyDropStatus(zone, `Loaded ${selectedFiles.length} file${selectedFiles.length === 1 ? '' : 's'}; ${textarea.value.split('\n').filter(Boolean).length} unique entries.`, false);
+  return selectedFiles.length;
+}
+
+async function loadSelectedKeyFiles(targetId, files) {
+  const zone = keyDropZoneFor(targetId);
+  try {
+    await loadKeyFilesIntoTextarea(targetId, files);
+  } catch (error) {
+    setKeyDropStatus(zone, error.message, true);
+    alert(error.message);
+  } finally {
+    const input = document.getElementById(`${targetId}FileInput`);
+    if (input) input.value = '';
+  }
+}
+
+function chooseKeyFiles(targetId) {
+  document.getElementById(`${targetId}FileInput`)?.click();
+}
+
+function setupKeyDropZones() {
+  document.querySelectorAll('.key-drop-zone').forEach(zone => {
+    const stop = event => {
+      event.preventDefault();
+      event.stopPropagation();
+    };
+    ['dragenter', 'dragover'].forEach(type => zone.addEventListener(type, event => {
+      stop(event);
+      zone.classList.add('dragging');
+    }));
+    ['dragleave', 'dragend'].forEach(type => zone.addEventListener(type, event => {
+      stop(event);
+      zone.classList.remove('dragging');
+    }));
+    zone.addEventListener('drop', event => {
+      stop(event);
+      zone.classList.remove('dragging');
+      loadSelectedKeyFiles(zone.dataset.keyTarget, event.dataTransfer?.files || []);
+    });
+  });
+}
+
+let _generating = false;
+
+function getOutputSettings() {
+  return {
+    routingStrategy: document.getElementById('routingStrategy').value.trim(),
+    numRetries: document.getElementById('numRetries').value.trim(),
+    retryAfter: document.getElementById('retryAfter').value.trim(),
+    allowedFails: document.getElementById('allowedFails').value.trim(),
+    cooldownTime: document.getElementById('cooldownTime').value.trim(),
+    routerTimeout: document.getElementById('routerTimeout').value.trim() || '300',
+    cfRequestTimeout: document.getElementById('cfRequestTimeout').value.trim() || '3000',
+    cfStreamTimeout: document.getElementById('cfStreamTimeout').value.trim() || '300',
+    cfMaxRetries: document.getElementById('cfMaxRetries').value.trim() || '1',
+    includeModelInfo: document.getElementById('includeModelInfo').checked,
+    masterKey: document.getElementById('litellmMasterKey').value.trim() || 'anything'
+  };
+}
+
+function configuredProviders(deployments, credentials) {
+  return deployments.filter(deployment => {
+    if (deployment.provider === 'nvidia') return (credentials.nvidiaKeys || []).length > 0;
+    if (deployment.provider === 'cloudflare') return (credentials.cloudflareKeys || []).length > 0;
+    if (deployment.provider === 'gemini') return (credentials.geminiKeys || []).length > 0;
+    return (credentials.openrouterKeys || []).length > 0;
+  });
+}
+
+function generate() {
+  if (_generating) return;
+  const deployments = collectSelectedDeployments();
+  const credentials = { nvidiaKeys: getKeys(), cloudflareKeys: getCfKeys(), geminiKeys: getGeminiKeys(), openrouterKeys: getOpenRouterKeys() };
+  if (configuredProviders(deployments, credentials).length === 0) {
+    alert('Add at least one provider with both credentials and a selected model.');
+    return;
+  }
+
+  _generating = true;
+  downloadYaml(buildYamlConfig(deployments, credentials, getOutputSettings()), 'config.yaml');
+  const btn = document.querySelector('.btn-generate');
+  btn.textContent = 'Downloaded!';
+  btn.classList.add('success');
+  _generating = false;
+  setTimeout(() => { btn.textContent = 'Generate Config'; btn.classList.remove('success'); }, 1500);
+}
+
+function buildYamlConfig(deployments, credentials, settings) {
+  const strategy = settings.routingStrategy || 'simple-shuffle';
+  const numRetries = settings.numRetries || '3';
+  const retryAfter = settings.retryAfter || '5';
+  const allowedFails = settings.allowedFails || '2';
+  const cooldownTime = settings.cooldownTime || '60';
+  const routerTimeout = settings.routerTimeout || '300';
+  const cfRequestTimeout = settings.cfRequestTimeout || '3000';
+  const cfStreamTimeout = settings.cfStreamTimeout || '300';
+  const cfMaxRetries = settings.cfMaxRetries || '1';
+  const includeModelInfo = Boolean(settings.includeModelInfo);
+  const keys = credentials.nvidiaKeys || [];
+  const cfKeys = credentials.cloudflareKeys || [];
+  const geminiKeys = credentials.geminiKeys || [];
+  const openrouterKeys = credentials.openrouterKeys || [];
+  let yaml = 'model_list:\n';
+
+  // NVIDIA models
+  if (keys.length > 0) deployments.filter(item => item.provider === 'nvidia').forEach(deployment => {
+    yaml += `\n  # ${deployment.model}\n`;
+    keys.forEach(key => {
+      yaml += `  - model_name: ${deployment.proxyModel}\n`;
+      if (includeModelInfo && (deployment.contextLimit || deployment.outputLimit)) {
+        yaml += '    model_info:\n';
+        if (deployment.contextLimit) yaml += `      max_input_tokens: ${deployment.contextLimit}\n`;
+        if (deployment.outputLimit) yaml += `      max_tokens: ${deployment.outputLimit}\n`;
+      }
+      yaml += '    litellm_params:\n';
+      yaml += `      model: ${deployment.upstreamModel}\n`;
+      yaml += '      api_base: https://integrate.api.nvidia.com/v1\n';
+      yaml += `      api_key: ${yamlScalar(key)}\n`;
+      yaml += appendLiteLLMDynamicParamPolicy(deployment, 6);
+      yaml += `      rpm: ${deployment.rpm || '40'}\n`;
+      yaml += `      timeout: ${deployment.timeout || '1000'}\n`;
+      yaml += `      stream_timeout: ${deployment.timeout || '1000'}\n`;
+    });
+  });
+
+  // Cloudflare models
+  if (cfKeys.length > 0) deployments.filter(item => item.provider === 'cloudflare').forEach(deployment => {
+    yaml += `\n  # ${deployment.model}\n`;
+    cfKeys.forEach(cfKey => {
+      yaml += `  - model_name: ${deployment.proxyModel}\n`;
+      if (includeModelInfo && (deployment.contextLimit || deployment.outputLimit)) {
+        yaml += '    model_info:\n';
+        if (deployment.contextLimit) yaml += `      max_input_tokens: ${deployment.contextLimit}\n`;
+        if (deployment.outputLimit) yaml += `      max_tokens: ${deployment.outputLimit}\n`;
+      }
+      yaml += '    litellm_params:\n';
+      yaml += `      model: ${deployment.upstreamModel}\n`;
+      yaml += `      api_base: ${yamlScalar(`https://api.cloudflare.com/client/v4/accounts/${cfKey.accountId}/ai/v1`)}\n`;
+      yaml += `      api_key: ${yamlScalar(cfKey.apiKey)}\n`;
+      yaml += appendLiteLLMDynamicParamPolicy(deployment, 6);
+      yaml += `      timeout: ${cfRequestTimeout}\n`;
+      yaml += `      stream_timeout: ${cfStreamTimeout}\n`;
+      yaml += `      max_retries: ${cfMaxRetries}\n`;
+      yaml += '      modify_params: true\n';
+      yaml += '      use_chat_completions_api: true\n';
+    });
+  });
+
+  // Google AI Studio models
+  if (geminiKeys.length > 0) deployments.filter(item => item.provider === 'gemini').forEach(deployment => {
+    yaml += `\n  # ${deployment.model}\n`;
+    geminiKeys.forEach(key => {
+      yaml += `  - model_name: ${deployment.proxyModel}\n`;
+      if (includeModelInfo && (deployment.contextLimit || deployment.outputLimit)) {
+        yaml += '    model_info:\n';
+        if (deployment.contextLimit) yaml += `      max_input_tokens: ${deployment.contextLimit}\n`;
+        if (deployment.outputLimit) yaml += `      max_tokens: ${deployment.outputLimit}\n`;
+      }
+      yaml += '    litellm_params:\n';
+      yaml += `      model: ${deployment.upstreamModel}\n`;
+      yaml += `      api_key: ${yamlScalar(key)}\n`;
+      yaml += appendLiteLLMDynamicParamPolicy(deployment, 6);
+    });
+  });
+
+  // OpenRouter models
+  if (openrouterKeys.length > 0) deployments.filter(item => item.provider === 'openrouter').forEach(deployment => {
+    yaml += `\n  # ${deployment.model}\n`;
+    openrouterKeys.forEach(key => {
+      yaml += `  - model_name: ${deployment.proxyModel}\n`;
+      if (includeModelInfo && (deployment.contextLimit || deployment.outputLimit)) {
+        yaml += '    model_info:\n';
+        if (deployment.contextLimit) yaml += `      max_input_tokens: ${deployment.contextLimit}\n`;
+        if (deployment.outputLimit) yaml += `      max_tokens: ${deployment.outputLimit}\n`;
+      }
+      yaml += '    litellm_params:\n';
+      yaml += `      model: ${deployment.upstreamModel}\n`;
+      yaml += `      api_key: ${yamlScalar(key)}\n`;
+      yaml += appendLiteLLMDynamicParamPolicy(deployment, 6);
+    });
+  });
+
+  yaml += '\nrouter_settings:\n';
+  yaml += `  routing_strategy: ${strategy}\n`;
+  yaml += `  num_retries: ${numRetries}\n`;
+  yaml += `  retry_after: ${retryAfter}\n`;
+  yaml += `  allowed_fails: ${allowedFails}\n`;
+  yaml += `  cooldown_time: ${cooldownTime}\n`;
+  yaml += `  timeout: ${routerTimeout}\n`;
+  yaml += `  stream_timeout: ${routerTimeout}\n`;
+  yaml += '\ngeneral_settings:\n';
+  yaml += '  master_key: os.environ/LITELLM_MASTER_KEY\n';
+  return yaml;
+}
+
+function buildKimiStreamProbe(options) {
+  const opts = options || {};
+  const baseUrl = opts.baseUrl || 'http://localhost:4000/v1';
+  const apiKey = opts.apiKey || 'anything';
+  const model = opts.model || 'cloudflare/moonshotai/kimi-k2.7-code';
+  const idleTimeoutSeconds = Number(opts.idleTimeoutSeconds || document.getElementById('cfStreamTimeout')?.value || 300);
+  return `#!/usr/bin/env python3
+"""Diagnose Kimi K2.7 streaming and tool-call completion through LiteLLM.
+
+Install dependency: python -m pip install httpx
+The probe declares a deterministic tool but NEVER executes it.
+"""
+import json
+import sys
+import time
+
+import httpx
+
+BASE_URL = ${JSON.stringify(baseUrl)}.rstrip("/")
+API_KEY = ${JSON.stringify(apiKey)}
+MODEL = ${JSON.stringify(model)}
+STREAM_IDLE_TIMEOUT = ${idleTimeoutSeconds}
+
+payload = {
+    "model": MODEL,
+    "stream": True,
+    "messages": [
+        {
+            "role": "user",
+            "content": "Call the record_probe tool exactly once with status='ok'. Do not answer with ordinary text.",
+        }
+    ],
+    "tools": [
+        {
+            "type": "function",
+            "function": {
+                "name": "record_probe",
+                "description": "Records a harmless probe result. PROBE DOES NOT EXECUTE TOOLS.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {"status": {"type": "string", "enum": ["ok"]}},
+                    "required": ["status"],
+                    "additionalProperties": False,
+                },
+            },
+        }
+    ],
+    "tool_choice": "required",
+    "parallel_tool_calls": False,
+}
+
+headers = {
+    "Authorization": f"Bearer {API_KEY}",
+    "Content-Type": "application/json",
+    "Accept": "text/event-stream",
+}
+
+timeout = httpx.Timeout(connect=30.0, read=float(STREAM_IDLE_TIMEOUT), write=30.0, pool=30.0)
+tool_call_fragments = {}
+finish_reason = None
+saw_done = False
+last_event_at = time.monotonic()
+
+try:
+    with httpx.Client(timeout=timeout) as client:
+        with client.stream("POST", f"{BASE_URL}/chat/completions", headers=headers, json=payload) as response:
+            response.raise_for_status()
+            print(f"HTTP {response.status_code}; model={MODEL}; idle_timeout={STREAM_IDLE_TIMEOUT}s")
+            for line in response.iter_lines():
+                now = time.monotonic()
+                gap = now - last_event_at
+                last_event_at = now
+                if not line:
+                    continue
+                print(f"chunk_gap={gap:.3f}s raw={line[:240]}")
+                if not line.startswith("data:"):
+                    continue
+                data = line[5:].strip()
+                if data == "[DONE]":
+                    saw_done = True
+                    print("terminal=[DONE]")
+                    break
+                event = json.loads(data)
+                choices = event.get("choices") or []
+                if not choices:
+                    continue
+                choice = choices[0]
+                delta = choice.get("delta") or {}
+                reasoning = delta.get("reasoning") or delta.get("reasoning_content")
+                if reasoning:
+                    print(f"reasoning_delta={reasoning[:160]!r}")
+                if delta.get("content"):
+                    print(f"content_delta={delta['content'][:160]!r}")
+                for tool_call in delta.get("tool_calls") or []:
+                    index = tool_call.get("index", 0)
+                    record = tool_call_fragments.setdefault(index, {"id": "", "name": "", "arguments": ""})
+                    if tool_call.get("id"):
+                        record["id"] += tool_call["id"]
+                    function = tool_call.get("function") or {}
+                    if function.get("name"):
+                        record["name"] += function["name"]
+                    if function.get("arguments"):
+                        record["arguments"] += function["arguments"]
+                    print(f"tool_delta[{index}]={record}")
+                if choice.get("finish_reason"):
+                    finish_reason = choice["finish_reason"]
+                    print(f"finish_reason={finish_reason}")
+except httpx.ReadTimeout:
+    print(f"FAIL: no stream data arrived for {STREAM_IDLE_TIMEOUT} seconds", file=sys.stderr)
+    sys.exit(2)
+except (httpx.HTTPError, json.JSONDecodeError) as exc:
+    print(f"FAIL: stream/protocol error: {exc}", file=sys.stderr)
+    sys.exit(3)
+
+if not saw_done:
+    print("FAIL: stream closed without [DONE]", file=sys.stderr)
+    sys.exit(4)
+if not finish_reason:
+    print("FAIL: stream reached [DONE] without finish_reason", file=sys.stderr)
+    sys.exit(5)
+if not tool_call_fragments:
+    print("FAIL: no tool call was produced", file=sys.stderr)
+    sys.exit(6)
+
+for index, record in sorted(tool_call_fragments.items()):
+    arguments = record["arguments"]
+    try:
+        parsed = json.loads(arguments)
+    except json.JSONDecodeError as exc:
+        print(f"FAIL: incomplete tool JSON at index {index}: {exc}; raw={arguments!r}", file=sys.stderr)
+        sys.exit(7)
+    print(f"complete_tool_call[{index}] name={record['name']!r} arguments={parsed!r}")
+
+print("PASS: terminal stream and complete tool-call JSON observed.")
+print("PROBE DOES NOT EXECUTE TOOLS; no side effects occurred.")
+`;
+}
+
+function copyKimiStreamProbe(ev) {
+  const probe = buildKimiStreamProbe();
+  const target = ev && ev.currentTarget ? ev.currentTarget : null;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(probe).then(() => flashBtn(target, 'Copied!')).catch(() => fallbackCopy(probe, target));
+  } else {
+    fallbackCopy(probe, target);
+  }
+}
+
+function downloadKimiStreamProbe() {
+  downloadText(buildKimiStreamProbe(), 'kimi-stream-probe.py', 'text/x-python');
+}
+
+function downloadYaml(yaml, filename) {
+  const blob = new Blob([yaml], { type: 'text/yaml' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function downloadText(text, filename, mime) {
+  const blob = new Blob([text], { type: mime || 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function flashBtn(btn, msg) {
+  if (!btn) return;
+  const original = btn.textContent;
+  btn.textContent = msg;
+  btn.classList.add('success');
+  setTimeout(() => { btn.textContent = original; btn.classList.remove('success'); }, 1500);
+}
+
+const CODEX_ACRONYMS = { glm: 'GLM', gpt: 'GPT', nim: 'NIM', ai: 'AI', oss: 'OSS', api: 'API' };
+
+function codexDisplayName(model) {
+  const name = (model.split('/').pop() || model).replace(/[-_]/g, ' ');
+  return name.split(' ').map(word => CODEX_ACRONYMS[word.toLowerCase()] || (word ? word.charAt(0).toUpperCase() + word.slice(1) : word)).join(' ');
+}
+
+function codexEnabledDeployments(deployments) {
+  return (deployments || []).filter(item => item.codexEnabled);
+}
+
+function codexReasoningLevel(deployment) {
+  const effective = deployment?.reasoningProfile?.effectiveLevel || deployment?.reasoningLevel || 'medium';
+  return effective === 'medium' ? 'medium' : 'high';
+}
+
+function buildCodexCatalogEntry(deployment, priority) {
+  const effort = codexReasoningLevel(deployment);
+  const status = String(deployment.codexStatus || 'unverified').toUpperCase();
+  return {
+    prefer_websockets: false,
+    support_verbosity: false,
+    input_modalities: ['text'],
+    supports_image_detail_original: false,
+    truncation_policy: { mode: 'tokens', limit: 10000 },
+    supports_parallel_tool_calls: false,
+    context_window: deployment.contextLimit || 200000,
+    max_context_window: deployment.contextLimit || 200000,
+    auto_compact_token_limit: null,
+    reasoning_summary_format: 'none',
+    default_reasoning_summary: 'none',
+    slug: deployment.proxyModel,
+    display_name: deployment.displayName || codexDisplayName(deployment.proxyModel),
+    description: `${status} Codex Responses/tool compatibility through LiteLLM. Provider=${deployment.provider}.`,
+    default_reasoning_level: effort,
+    supported_reasoning_levels: [{ effort, description: `Uses the generator's ${deployment.reasoningLevel || effort} reasoning profile.` }],
+    shell_type: 'shell_command',
+    visibility: 'list',
+    minimal_client_version: '0.0.1',
+    supported_in_api: true,
+    availability_nux: null,
+    upgrade: null,
+    priority,
+    base_instructions: 'You are Codex, a coding agent. Work carefully in the user workspace, use shell tools when available, make minimal edits, test changes, and report verification. This custom provider may not support OpenAI-specific built-in tools; do not claim a tool ran unless its result was returned.',
+    experimental_supported_tools: [],
+    available_in_plans: [],
+    supports_search_tool: false,
+    service_tiers: [],
+    additional_speed_tiers: [],
+    supports_reasoning_summaries: false
+  };
+}
+
+function buildCodexCatalog(deployments) {
+  const seen = new Set();
+  const models = [];
+  codexEnabledDeployments(deployments).forEach(deployment => {
+    if (seen.has(deployment.proxyModel)) return;
+    seen.add(deployment.proxyModel);
+    models.push(buildCodexCatalogEntry(deployment, models.length));
+  });
+  return { models };
+}
+
+function buildCodexTomlFromDeployments(deployments, options) {
+  const enabled = codexEnabledDeployments(deployments);
+  if (enabled.length === 0) throw new Error('Enable Codex on at least one selected model row.');
+  const opts = options || {};
+  const firstSlug = enabled[0].proxyModel;
+  const requestRetries = Number(opts.requestRetries ?? 3);
+  const streamRetries = Number(opts.streamRetries ?? 2);
+  const streamIdleTimeoutMs = Number(opts.streamIdleTimeoutMs ?? 120000);
+  let toml = '';
+  toml += `model = ${JSON.stringify(firstSlug)}\n`;
+  toml += 'model_provider = "litellm"\n';
+  toml += 'model_catalog_json = "~/.codex/codex-model-catalog.json"\n\n';
+  toml += '[model_providers.litellm]\n';
+  toml += 'name = "LiteLLM Proxy"\n';
+  toml += 'base_url = "http://127.0.0.1:4000/v1"\n';
+  toml += 'env_key = "LITELLM_MASTER_KEY"\n';
+  toml += 'env_key_instructions = "Set LITELLM_MASTER_KEY to the same value used by config.yaml."\n';
+  toml += 'wire_api = "responses"\n';
+  toml += 'requires_openai_auth = false\n';
+  toml += `request_max_retries = ${requestRetries}\n`;
+  toml += `stream_max_retries = ${streamRetries}\n`;
+  toml += `stream_idle_timeout_ms = ${streamIdleTimeoutMs}\n`;
+  return toml;
+}
+
+function buildCodexToml() {
+  return buildCodexTomlFromDeployments(collectSelectedDeployments(), {
+    requestRetries: document.getElementById('numRetries').value.trim() || 3,
+    streamRetries: document.getElementById('streamRetries').value.trim() || 2,
+    streamIdleTimeoutMs: Number(document.getElementById('cfStreamTimeout').value.trim() || 300) * 1000
+  });
+}
+
+function copyCodexConfig(ev) {
+  let toml;
+  try { toml = buildCodexToml(); } catch (error) { alert(error.message); return; }
+  const target = ev && ev.currentTarget ? ev.currentTarget : null;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(toml).then(() => flashBtn(target, 'Copied!')).catch(() => fallbackCopy(toml, target));
+  } else fallbackCopy(toml, target);
+}
+
+function fallbackCopy(text, btn) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand('copy'); flashBtn(btn, 'Copied!'); } catch (error) { alert('Copy failed - select and copy manually.'); }
+  document.body.removeChild(ta);
+}
+
+function buildCodexResponsesProbe(deployments) {
+  const enabled = codexEnabledDeployments(deployments);
+  if (enabled.length === 0) throw new Error('Enable Codex on at least one selected model row.');
+  return `Codex + LiteLLM Responses compatibility probe\n\n1. Generate config.yaml, config.toml, and codex-model-catalog.json from the same page state.\n2. Run start-litellm.ps1.\n3. Run setup-codex.ps1.\n4. Run test-codex-connection.ps1 -Model ${enabled[0].proxyModel}.\n5. Mark the row Verified only if plain Responses, streamed Responses, and a harmless function-tool request all complete.\n\nA chat-completions success does not prove Codex compatibility. A stream that closes without a terminal event, incomplete tool JSON, or a 400 mentioning custom/function/shell tool schemas is a failed Codex probe.`;
+}
+
+function copyCodexProbe(ev) {
+  let probe;
+  try { probe = buildCodexResponsesProbe(collectSelectedDeployments()); } catch (error) { alert(error.message); return; }
+  const target = ev && ev.currentTarget ? ev.currentTarget : null;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(probe).then(() => flashBtn(target, 'Copied!')).catch(() => fallbackCopy(probe, target));
+  } else fallbackCopy(probe, target);
+}
+
+function downloadCodexConfig() {
+  try { downloadText(buildCodexToml(), 'config.toml', 'text/toml'); } catch (error) { alert(error.message); }
+}
+
+function downloadCodexCatalog() {
+  const catalog = buildCodexCatalog(collectSelectedDeployments());
+  if (catalog.models.length === 0) { alert('Enable Codex on at least one selected model row.'); return; }
+  downloadText(JSON.stringify(catalog, null, 2), 'codex-model-catalog.json', 'application/json');
+}
+
+function buildOpenCodeVariantOptions(deployment, level) {
+  const providerCaps = REASONING_CAPABILITIES[deployment.provider] || {};
+  const capability = providerCaps[deployment.model] || providerCaps.default || { kind: 'provider-default' };
+  const profile = resolveReasoningProfile(deployment.provider, deployment.model, level);
+  const options = {};
+
+  // NVIDIA NIM and Cloudflare reasoning controls are fixed in the LiteLLM
+  // deployment-level extra_body. Sending them from OpenCode makes LiteLLM
+  // validate provider-specific fields as generic OpenAI parameters and can
+  // raise UnsupportedParamsError before the request reaches the provider.
+  if (capability.runtimeReasoning !== false) {
+    if (profile.params.reasoning_effort) options.reasoningEffort = profile.params.reasoning_effort;
+
+    const extra = profile.params.extra_body || {};
+    const chatTemplate = extra.chat_template_kwargs || {};
+    if (Object.keys(chatTemplate).length > 0) options.chat_template_kwargs = { ...chatTemplate };
+    if (extra.thinking_token_budget !== undefined) options.thinking_token_budget = extra.thinking_token_budget;
+    if (extra.reasoning_budget !== undefined) options.reasoning_budget = extra.reasoning_budget;
+  }
+
+  const outputCandidate = Number(deployment.opencodeOutputLimit || deployment.outputLimit);
+  const outputLimit = Number.isFinite(outputCandidate) && outputCandidate > 0 ? outputCandidate : 65536;
+  options.max_tokens = Math.min(profile.recommendedMaxTokens, outputLimit);
+  return options;
+}
+
+function buildOpenCodeVariants(deployment) {
+  const providerCaps = REASONING_CAPABILITIES[deployment.provider] || {};
+  const capability = providerCaps[deployment.model] || providerCaps.default || { kind: 'provider-default' };
+  if (capability.kind === 'provider-default' && !capability.outputVariants) return {};
+  return Object.keys(REASONING_LEVELS).reduce((variants, level) => {
+    variants[level] = buildOpenCodeVariantOptions(deployment, level);
+    return variants;
+  }, {});
+}
+
+function buildOpenCodeConfig(deployments, settings) {
+  const models = {};
+  const masterKey = String(settings?.masterKey || 'anything');
+  (deployments || []).forEach(deployment => {
+    const contextCandidate = Number(deployment.contextLimit);
+    const context = Number.isFinite(contextCandidate) && contextCandidate > 0 ? contextCandidate : 200000;
+    const outputCandidate = Number(deployment.opencodeOutputLimit || deployment.outputLimit);
+    const output = Number.isFinite(outputCandidate) && outputCandidate > 0
+      ? Math.min(outputCandidate, context)
+      : Math.min(65536, context);
+    const entry = {
+      name: deployment.displayName,
+      limit: { context, output }
+    };
+    const variants = buildOpenCodeVariants(deployment);
+    if (Object.keys(variants).length > 0) {
+      entry.reasoning = true;
+      entry.variants = variants;
+    }
+    models[deployment.proxyModel] = entry;
+  });
+  return {
+    $schema: 'https://opencode.ai/config.json',
+    compaction: { auto: true, reserved: 21808 },
+    provider: {
+      litellm: {
+        npm: '@ai-sdk/openai-compatible',
+        name: 'LiteLLM Proxy',
+        options: {
+          baseURL: 'http://127.0.0.1:4000/v1',
+          apiKey: masterKey,
+          timeout: 1200000,
+          chunkTimeout: 120000
+        },
+        models
+      }
+    }
+  };
+}
+
+function buildLiteLLMProviderConfig(deployments, settings) {
+  return buildOpenCodeConfig(deployments, settings).provider.litellm;
+}
+
+function copyLiteLLMProviderConfig(ev) {
+  const deployments = collectSelectedDeployments();
+  if (deployments.length === 0) { alert('Add at least one model.'); return; }
+  const provider = buildLiteLLMProviderConfig(deployments, getOutputSettings());
+  const text = JSON.stringify(provider, null, 2);
+  const target = ev && ev.currentTarget ? ev.currentTarget : null;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text)
+      .then(() => flashBtn(target, 'Copied!'))
+      .catch(() => fallbackCopy(text, target));
+  } else {
+    fallbackCopy(text, target);
+  }
+}
+
+function generateOpenCode() {
+  const deployments = collectSelectedDeployments();
+  if (deployments.length === 0) { alert('Add at least one model.'); return; }
+  downloadText(JSON.stringify(buildOpenCodeConfig(deployments, getOutputSettings()), null, 2), 'opencode.jsonc', 'application/json');
+}
+
+function buildStartLiteLLMPowerShell(defaultMasterKey) {
+  const fallbackKey = defaultMasterKey || 'anything';
+  return `param(
+  [string]$ConfigPath = (Join-Path $PSScriptRoot "config.yaml"),
+  [string]$MasterKey = $(if ($env:LITELLM_MASTER_KEY) { $env:LITELLM_MASTER_KEY } else { ${JSON.stringify(fallbackKey)} }),
+  [switch]$Docker
+)
+$ErrorActionPreference = "Stop"
+$env:LITELLM_MASTER_KEY = $MasterKey
+if (-not (Test-Path $ConfigPath)) { throw "config.yaml not found: $ConfigPath" }
+if ($Docker) {
+  if (-not (Get-Command docker -ErrorAction SilentlyContinue)) { throw "Docker is not installed or not on PATH." }
+  $resolved = (Resolve-Path $ConfigPath).Path
+  docker run --rm -p 4000:4000 -e LITELLM_MASTER_KEY=$MasterKey -v "$($resolved):/app/config.yaml" docker.litellm.ai/berriai/litellm:main-latest --config /app/config.yaml --host 0.0.0.0 --port 4000
+} else {
+  if (-not (Get-Command litellm -ErrorAction SilentlyContinue)) {
+    throw "LiteLLM is not installed. Run: py -m pip install 'litellm[proxy]'"
+  }
+  litellm --config $ConfigPath --host 127.0.0.1 --port 4000
+}
+`;
+}
+
+function buildSetupCodexPowerShell(defaultMasterKey) {
+  const fallbackKey = defaultMasterKey || 'anything';
+  return `param(
+  [string]$SourceDir = $PSScriptRoot,
+  [string]$MasterKey = $(if ($env:LITELLM_MASTER_KEY) { $env:LITELLM_MASTER_KEY } else { ${JSON.stringify(fallbackKey)} }),
+  [switch]$PersistKey
+)
+$ErrorActionPreference = "Stop"
+$codexHome = Join-Path $HOME ".codex"
+New-Item -ItemType Directory -Force -Path $codexHome | Out-Null
+foreach ($name in @("config.toml", "codex-model-catalog.json")) {
+  $source = Join-Path $SourceDir $name
+  if (-not (Test-Path $source)) { throw "$name not found in $SourceDir" }
+  Copy-Item -Force $source (Join-Path $codexHome $name)
+}
+$env:LITELLM_MASTER_KEY = $MasterKey
+if ($PersistKey) { [Environment]::SetEnvironmentVariable("LITELLM_MASTER_KEY", $MasterKey, "User") }
+Write-Host "Installed Codex files in $codexHome"
+Write-Host "LITELLM_MASTER_KEY is set for this PowerShell process. Use -PersistKey to store it for the current Windows user."
+`;
+}
+
+function buildTestCodexConnectionPowerShell(deployments, defaultMasterKey) {
+  const fallbackKey = defaultMasterKey || 'anything';
+  const enabled = codexEnabledDeployments(deployments);
+  const defaultModel = enabled[0]?.proxyModel || '';
+  return `param(
+  [string]$Model = ${JSON.stringify(defaultModel)},
+  [string]$MasterKey = $(if ($env:LITELLM_MASTER_KEY) { $env:LITELLM_MASTER_KEY } else { ${JSON.stringify(fallbackKey)} }),
+  [switch]$SkipCodex,
+  [switch]$TestTools
+)
+$ErrorActionPreference = "Stop"
+if (-not $Model) { throw "No Codex-enabled model was generated." }
+$base = "http://127.0.0.1:4000"
+$headers = @{ Authorization = "Bearer $MasterKey"; "Content-Type" = "application/json" }
+Write-Host "1/4 LiteLLM health"
+Invoke-RestMethod -Uri "$base/health" -Headers $headers -Method Get | Out-Null
+Write-Host "2/4 Model alias"
+$models = Invoke-RestMethod -Uri "$base/v1/models" -Headers $headers -Method Get
+if (-not ($models.data.id -contains $Model)) { throw "Model alias '$Model' is not exposed by LiteLLM." }
+Write-Host "3/4 Responses API"
+$body = @{ model = $Model; input = "Reply with LITELLM_RESPONSES_OK only."; stream = $false } | ConvertTo-Json -Depth 20
+$response = Invoke-RestMethod -Uri "$base/v1/responses" -Headers $headers -Method Post -Body $body
+if (-not $response.id) { throw "Responses API returned no response id." }
+Write-Host "Responses API connected: $($response.id)"
+if ($TestTools) {
+  Write-Host "Optional harmless function-tool probe"
+  $toolBody = @{
+    model = $Model
+    input = "Call record_probe exactly once with status='ok'."
+    tools = @(@{ type = "function"; name = "record_probe"; description = "Harmless compatibility probe"; parameters = @{ type = "object"; properties = @{ status = @{ type = "string"; enum = @("ok") } }; required = @("status"); additionalProperties = $false } })
+    tool_choice = "required"
+    stream = $false
+  } | ConvertTo-Json -Depth 30
+  Invoke-RestMethod -Uri "$base/v1/responses" -Headers $headers -Method Post -Body $toolBody | Out-Null
+  Write-Host "Function-tool request completed. This script does not execute returned tools."
+}
+if (-not $SkipCodex) {
+  Write-Host "4/4 Codex CLI smoke test"
+  if (-not (Get-Command codex -ErrorAction SilentlyContinue)) { throw "Codex CLI is not installed or not on PATH." }
+  $env:LITELLM_MASTER_KEY = $MasterKey
+  codex exec --model $Model "Reply with CODEX_LITELLM_OK only. Do not modify files."
+} else { Write-Host "4/4 Codex CLI skipped" }
+`;
+}
+
+function buildCodexBundleManifest() {
+  return `# LiteLLM to Codex bundle\n\n## Files\n\n- config.yaml: LiteLLM deployments and proxy authentication.\n- opencode.jsonc: the same aliases for OpenCode.\n- config.toml: Codex custom LiteLLM provider using the Responses wire API.\n- codex-model-catalog.json: the same Codex-enabled aliases.\n- start-litellm.ps1: starts the proxy locally or with Docker.\n- setup-codex.ps1: installs the Codex files in ~/.codex and sets LITELLM_MASTER_KEY.\n- test-codex-connection.ps1: checks health, aliases, Responses, optional tools, and Codex CLI.\n\n## Windows setup\n\n1. Keep every file in this folder. Replace the REPLACE_ME provider credentials in config.yaml.\n2. Install LiteLLM when needed: py -m pip install "litellm[proxy]"\n3. In PowerShell, permit these local scripts for the current process: Set-ExecutionPolicy -Scope Process Bypass\n4. Start LiteLLM and leave the window open: .\\start-litellm.ps1\n5. Open a second PowerShell window in this folder: .\\setup-codex.ps1 -PersistKey\n6. Verify the proxy and Codex: .\\test-codex-connection.ps1\n7. After the plain check passes, probe function-tool transport: .\\test-codex-connection.ps1 -TestTools\n\nTo test a different generated alias, pass -Model, for example:\n\n    .\\test-codex-connection.ps1 -Model gemini-3.6-flash\n\nThe alias set is generated from one registry and is identical across config.yaml, opencode.jsonc, and codex-model-catalog.json. Unverified models are intentionally visible but have not yet proven Codex Responses and tool compatibility. The test script never executes a returned probe tool.\n`;
+}
+
+function downloadStartLiteLLM() { downloadText(buildStartLiteLLMPowerShell(getOutputSettings().masterKey), 'start-litellm.ps1', 'text/plain'); }
+function downloadSetupCodex() { downloadText(buildSetupCodexPowerShell(getOutputSettings().masterKey), 'setup-codex.ps1', 'text/plain'); }
+function downloadTestCodexConnection() { downloadText(buildTestCodexConnectionPowerShell(collectSelectedDeployments(), getOutputSettings().masterKey), 'test-codex-connection.ps1', 'text/plain'); }
+function downloadCodexBundleManifest() { downloadText(buildCodexBundleManifest(), 'README-codex-litellm.md', 'text/markdown'); }
+
+PRESETS.forEach(p => addModelRow(p));
+CF_PRESETS.forEach(p => addCfModelRow(p));
+GEMINI_PRESETS.forEach(p => addGeminiModelRow(p));
+OPENROUTER_PRESETS.forEach(p => addOpenRouterModelRow(p));
+setupKeyDropZones();
+
+function getSystemTheme() {
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  document.querySelector('.theme-toggle').innerHTML = theme === 'dark' ? '&#9788;' : '&#9789;';
+  localStorage.setItem('theme', theme);
+}
+
+function toggleTheme() {
+  const current = document.documentElement.getAttribute('data-theme') || getSystemTheme();
+  applyTheme(current === 'dark' ? 'light' : 'dark');
+}
+
+applyTheme(localStorage.getItem('theme') || getSystemTheme());
+
+function toggleCard(header) {
+  header.parentElement.classList.toggle('collapsed');
+}
+</script>
+
+<!-- To refresh MODEL_INFO with latest data from build.nvidia.com, extract and run this script via Node.js:
+  node -e "const s=require('fs').readFileSync('index.html','utf8').match(/<script type=\"text\/plain\" id=\"update-model-info\">([\s\S]*?)<\/script>/)[1];require('fs').writeFileSync('_tmp.js',s);require('./_tmp');require('fs').unlinkSync('_tmp.js')"
+-->
+<script type="text/plain" id="update-model-info">
+const https = require('https');
+const fs = require('fs');
+const path = require('path');
+
+const MODELS = [
+  'deepseek-ai/deepseek-v4-pro',
+  'qwen/qwen3.5-397b-a17b',
+  'stepfun-ai/step-3.7-flash',
+  'openai/gpt-oss-120b',
+  'minimaxai/minimax-m3',
+  'nvidia/nemotron-3-ultra-550b-a55b',
+  'z-ai/glm-5.2',
+];
+
+function fetch(url) {
+  return new Promise((resolve, reject) => {
+    https.get(url, { headers: { 'User-Agent': 'Mozilla/5.0' } }, res => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => resolve(data));
+    }).on('error', reject);
+  });
+}
+
+function parseInfo(text) {
+  const info = { max_input_tokens: null, max_tokens: null };
+  const inputPatterns = [
+    /input\s+context\s+length[:\s]*(\d[\d,]*)/i,
+    /context\s+length[:\s]*(\d[\d,]*)/i,
+    /(?:ISL|Input Context Length)[:\s]*(\d[\d,]*)/i,
+    /max(?:imum)?\s*(?:input|context)\s*(?:tokens|length)[:\s]*(\d[\d,]*)/i,
+    /(\d[\d,]*)\s*tokens[.\s]*input/i,
+  ];
+  for (const p of inputPatterns) {
+    const m = text.match(p);
+    if (m) { info.max_input_tokens = parseInt(m[1].replace(/,/g, '')); break; }
+  }
+  const outputPatterns = [
+    /output\s+context\s+length[:\s]*(\d[\d,]*)/i,
+    /(?:OSL|Output Context Length|max_tokens)[:\s]*(\d[\d,]*)/i,
+    /max(?:imum)?\s*output\s*(?:tokens|length)[:\s]*(\d[\d,]*)/i,
+  ];
+  for (const p of outputPatterns) {
+    const m = text.match(p);
+    if (m) { info.max_tokens = parseInt(m[1].replace(/,/g, '')); break; }
+  }
+  return info;
+}
+
+async function main() {
+  const results = {};
+  for (const model of MODELS) {
+    const url = `https://build.nvidia.com/${model}.md`;
+    try {
+      const text = await fetch(url);
+      const info = parseInfo(text);
+      if (info.max_input_tokens || info.max_tokens) {
+        results[model] = info;
+        console.log(`${model}: max_input=${info.max_input_tokens}, max_output=${info.max_tokens}`);
+      } else {
+        console.log(`${model}: no info found`);
+      }
+    } catch (e) {
+      console.log(`${model}: fetch error - ${e.message}`);
+    }
+    await new Promise(r => setTimeout(r, 500));
+  }
+
+  const htmlFile = path.join(__dirname, 'index.html');
+  let html = fs.readFileSync(htmlFile, 'utf8');
+
+  const entries = Object.entries(results)
+    .map(([k, v]) => `  '${k}': { max_input_tokens: ${v.max_input_tokens}, max_tokens: ${v.max_tokens} }`)
+    .join(',\n');
+
+  const newBlock = `const MODEL_INFO = {\n${entries}\n};`;
+  html = html.replace(/const MODEL_INFO = \{[^}]+\};/s, newBlock);
+  fs.writeFileSync(htmlFile, html);
+  console.log('\nUpdated index.html with latest model info.');
+}
+
+main();
+</script>
+</body>
+</html>
