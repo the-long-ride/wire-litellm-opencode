@@ -281,6 +281,7 @@
           <button class="preset-btn" onclick="quickAdd(this.textContent)">openai/gpt-oss-120b</button>
           <button class="preset-btn" onclick="quickAdd(this.textContent)">minimaxai/minimax-m3</button>
           <button class="preset-btn" onclick="quickAdd(this.textContent)">nvidia/nemotron-3-ultra-550b-a55b</button>
+          <button class="preset-btn" onclick="quickAdd(this.textContent)">thinkingmachines/inkling</button>
           <button class="preset-btn" onclick="quickAdd(this.textContent)">z-ai/glm-5.2</button>
         </div>
       </div>
@@ -394,6 +395,7 @@ const PRESETS = [
   'openai/gpt-oss-120b',
   'minimaxai/minimax-m3',
   'nvidia/nemotron-3-ultra-550b-a55b',
+  'thinkingmachines/inkling',
   'z-ai/glm-5.2'
 ];
 
@@ -415,6 +417,7 @@ const MODEL_DISPLAY_NAMES = {
   'openai/gpt-oss-120b': 'GPT OSS 120B',
   'minimaxai/minimax-m3': 'MiniMax M3',
   'nvidia/nemotron-3-ultra-550b-a55b': 'Nemotron 3 Ultra',
+  'thinkingmachines/inkling': 'Inkling',
   'z-ai/glm-5.2': 'GLM 5.2',
   '@cf/zai-org/glm-5.2': 'GLM 5.2',
   '@cf/moonshotai/kimi-k2.7-code': 'Kimi K2.7 Code',
@@ -433,6 +436,7 @@ const MODEL_INFO = {
   'openai/gpt-oss-120b': { max_input_tokens: 128000, max_tokens: 16384 },
   'minimaxai/minimax-m3': { max_input_tokens: 512000, max_tokens: 128000 },
   'nvidia/nemotron-3-ultra-550b-a55b': { max_input_tokens: 220000, max_tokens: 128000 },
+  'thinkingmachines/inkling': { max_input_tokens: 1048576, max_tokens: 16384 },
   'z-ai/glm-5.2': { max_input_tokens: 180000, max_tokens: 131072 },
 };
 
@@ -521,6 +525,12 @@ const REASONING_CAPABILITIES = {
       staticLitellmParams: {
         extra_body: { chat_template_kwargs: { thinking: true } }
       }
+    },
+    'thinkingmachines/inkling': {
+      kind: 'provider-default',
+      runtimeReasoning: false,
+      outputVariants: true,
+      dropUnsupportedParams: true
     },
     'z-ai/glm-5.2': {
       kind: 'effort-enum', highest: 'max',
@@ -1796,6 +1806,7 @@ const MODELS = [
   'openai/gpt-oss-120b',
   'minimaxai/minimax-m3',
   'nvidia/nemotron-3-ultra-550b-a55b',
+  'thinkingmachines/inkling',
   'z-ai/glm-5.2',
 ];
 
