@@ -382,6 +382,7 @@
         <div class="preset-models" id="openrouterPresetContainer">
           <label>Quick Add:</label>
           <button class="preset-btn" onclick="quickOpenRouterAdd(this.textContent)">poolside/laguna-s-2.1:free</button>
+          <button class="preset-btn" onclick="quickOpenRouterAdd(this.textContent)">nvidia/nemotron-3-ultra-550b-a55b:free</button>
         </div>
       </div>
     </div>
@@ -408,7 +409,7 @@ const CF_PRESETS = [
 ];
 
 const GEMINI_PRESETS = ['gemini-3.6-flash', 'gemini-3.5-flash'];
-const OPENROUTER_PRESETS = ['poolside/laguna-s-2.1:free'];
+const OPENROUTER_PRESETS = ['poolside/laguna-s-2.1:free', 'nvidia/nemotron-3-ultra-550b-a55b:free'];
 
 const MODEL_DISPLAY_NAMES = {
   'deepseek-ai/deepseek-v4-pro': 'DeepSeek V4 Pro',
@@ -457,7 +458,8 @@ const GEMINI_MODEL_INFO = {
 };
 
 const OPENROUTER_MODEL_INFO = {
-  'poolside/laguna-s-2.1:free': { max_input_tokens: 220000, max_tokens: 65536 }
+  'poolside/laguna-s-2.1:free': { max_input_tokens: 220000, max_tokens: 65536 },
+  'nvidia/nemotron-3-ultra-550b-a55b:free': { max_input_tokens: 1000000, max_tokens: 128000 }
 };
 
 const REASONING_LEVELS = {
