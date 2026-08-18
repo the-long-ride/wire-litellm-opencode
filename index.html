@@ -355,6 +355,7 @@
         </div>
         <div class="preset-models" id="geminiPresetContainer">
           <label>Quick Add:</label>
+          <button class="preset-btn" onclick="quickGeminiAdd(this.textContent)">gemini-3.7-flash</button>
           <button class="preset-btn" onclick="quickGeminiAdd(this.textContent)">gemini-3.6-flash</button>
           <button class="preset-btn" onclick="quickGeminiAdd(this.textContent)">gemini-3.5-flash</button>
         </div>
@@ -381,6 +382,7 @@
         </div>
         <div class="preset-models" id="openrouterPresetContainer">
           <label>Quick Add:</label>
+          <button class="preset-btn" onclick="quickOpenRouterAdd(this.textContent)">openrouter/free</button>
           <button class="preset-btn" onclick="quickOpenRouterAdd(this.textContent)">poolside/laguna-s-2.1:free</button>
           <button class="preset-btn" onclick="quickOpenRouterAdd(this.textContent)">nvidia/nemotron-3-ultra-550b-a55b:free</button>
         </div>
@@ -408,8 +410,8 @@ const CF_PRESETS = [
   '@cf/zai-org/glm-4.7-flash'
 ];
 
-const GEMINI_PRESETS = ['gemini-3.6-flash', 'gemini-3.5-flash'];
-const OPENROUTER_PRESETS = ['poolside/laguna-s-2.1:free', 'nvidia/nemotron-3-ultra-550b-a55b:free'];
+const GEMINI_PRESETS = ['gemini-3.7-flash', 'gemini-3.6-flash'];
+const OPENROUTER_PRESETS = ['openrouter/free', 'poolside/laguna-s-2.1:free', 'nvidia/nemotron-3-ultra-550b-a55b:free'];
 
 const MODEL_DISPLAY_NAMES = {
   'deepseek-ai/deepseek-v4-pro': 'DeepSeek V4 Pro',
@@ -425,9 +427,12 @@ const MODEL_DISPLAY_NAMES = {
   'moonshotai/kimi-k3': 'Kimi K3',
   '@cf/openai/gpt-oss-120b': 'GPT OSS 120B',
   '@cf/zai-org/glm-4.7-flash': 'GLM 4.7 Flash',
+  'gemini-3.7-flash': 'Gemini 3.7 Flash',
   'gemini-3.6-flash': 'Gemini 3.6 Flash',
   'gemini-3.5-flash': 'Gemini 3.5 Flash',
-  'poolside/laguna-s-2.1:free': 'Laguna S 2.1 Free'
+  'openrouter/free': 'OpenRouter Free',
+  'poolside/laguna-s-2.1:free': 'Laguna S 2.1 Free',
+  'nvidia/nemotron-3-ultra-550b-a55b:free': 'Nemotron 3 Ultra Free'
 };
 
 const MODEL_INFO = {
@@ -453,11 +458,13 @@ const CF_MODEL_INFO = {
 };
 
 const GEMINI_MODEL_INFO = {
+  'gemini-3.7-flash': { max_input_tokens: 1048576, max_tokens: 65536 },
   'gemini-3.6-flash': { max_input_tokens: 1048576, max_tokens: 65536 },
   'gemini-3.5-flash': { max_input_tokens: 1048576, max_tokens: 65536 }
 };
 
 const OPENROUTER_MODEL_INFO = {
+  'openrouter/free': { max_input_tokens: 128000, max_tokens: 16384 },
   'poolside/laguna-s-2.1:free': { max_input_tokens: 220000, max_tokens: 65536 },
   'nvidia/nemotron-3-ultra-550b-a55b:free': { max_input_tokens: 1000000, max_tokens: 128000 }
 };
