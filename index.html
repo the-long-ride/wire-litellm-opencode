@@ -275,7 +275,7 @@
         </div>
         <div class="preset-models">
           <label>Quick Add:</label>
-          <button class="preset-btn" onclick="quickAdd(this.textContent)">deepseek-ai/deepseek-v4-pro</button>
+          <button class="preset-btn" onclick="quickAdd(this.textContent)">deepseek-ai/deepseek-v4-flash-0731</button>
           <button class="preset-btn" onclick="quickAdd(this.textContent)">qwen/qwen3.5-397b-a17b</button>
           <button class="preset-btn" onclick="quickAdd(this.textContent)">stepfun-ai/step-3.7-flash</button>
           <button class="preset-btn" onclick="quickAdd(this.textContent)">openai/gpt-oss-120b</button>
@@ -392,7 +392,7 @@
 
 <script>
 const PRESETS = [
-  'deepseek-ai/deepseek-v4-pro',
+  'deepseek-ai/deepseek-v4-flash-0731',
   'qwen/qwen3.5-397b-a17b',
   'stepfun-ai/step-3.7-flash',
   'openai/gpt-oss-120b',
@@ -414,7 +414,7 @@ const GEMINI_PRESETS = ['gemini-3.7-flash', 'gemini-3.6-flash'];
 const OPENROUTER_PRESETS = ['openrouter/free', 'poolside/laguna-s-2.1:free', 'nvidia/nemotron-3-ultra-550b-a55b:free'];
 
 const MODEL_DISPLAY_NAMES = {
-  'deepseek-ai/deepseek-v4-pro': 'DeepSeek V4 Pro',
+  'deepseek-ai/deepseek-v4-flash-0731': 'Deepseek V4 Flash',
   'qwen/qwen3.5-397b-a17b': 'Qwen 3.5 397B A17B',
   'stepfun-ai/step-3.7-flash': 'Step 3.7 Flash',
   'openai/gpt-oss-120b': 'GPT OSS 120B',
@@ -436,7 +436,7 @@ const MODEL_DISPLAY_NAMES = {
 };
 
 const MODEL_INFO = {
-  'deepseek-ai/deepseek-v4-pro': { max_input_tokens: 1000000, max_tokens: 384000 },
+  'deepseek-ai/deepseek-v4-flash-0731': { max_input_tokens: 1000000, max_tokens: 384000 },
   'qwen/qwen3.5-397b-a17b': { max_input_tokens: 262144, max_tokens: 65536 },
   'stepfun-ai/step-3.7-flash': { max_input_tokens: 256000, max_tokens: 256000 },
   'openai/gpt-oss-120b': { max_input_tokens: 128000, max_tokens: 16384 },
@@ -498,7 +498,7 @@ const REASONING_CAPABILITIES = {
       dropUnsupportedParams: true,
       staticLitellmParams: { extra_body: { reasoning_effort: 'high' } }
     },
-    'deepseek-ai/deepseek-v4-pro': {
+    'deepseek-ai/deepseek-v4-flash-0731': {
       kind: 'effort-with-thinking',
       lowest: 'high',
       highest: 'max',
@@ -842,7 +842,7 @@ function collectSelectedDeployments() {
 function addModelRow(value) {
   const div = document.createElement('div');
   div.className = 'model-row';
-  div.innerHTML = `<input class="model-name-input" type="text" placeholder="e.g. deepseek-ai/deepseek-v4-pro" value="${value || ''}"><span class="rpm-label">RPM</span><input class="rpm-input" type="text" value="40"><span class="timeout-label">T/O</span><input class="timeout-input" type="text" value="1000"><label class="codex-mini"><input class="codex-enabled-input" type="checkbox" checked>Codex</label><select class="codex-status-select" title="Codex Responses/tool probe status">${codexStatusOptions('unverified')}</select><button class="remove-btn" onclick="this.parentElement.remove(); updatePresetHighlights();">&times;</button>`;
+  div.innerHTML = `<input class="model-name-input" type="text" placeholder="e.g. deepseek-ai/deepseek-v4-flash-0731" value="${value || ''}"><span class="rpm-label">RPM</span><input class="rpm-input" type="text" value="40"><span class="timeout-label">T/O</span><input class="timeout-input" type="text" value="1000"><label class="codex-mini"><input class="codex-enabled-input" type="checkbox" checked>Codex</label><select class="codex-status-select" title="Codex Responses/tool probe status">${codexStatusOptions('unverified')}</select><button class="remove-btn" onclick="this.parentElement.remove(); updatePresetHighlights();">&times;</button>`;
   document.getElementById('modelList').appendChild(div);
   updatePresetHighlights();
 }
@@ -1809,7 +1809,7 @@ const fs = require('fs');
 const path = require('path');
 
 const MODELS = [
-  'deepseek-ai/deepseek-v4-pro',
+  'deepseek-ai/deepseek-v4-flash-0731',
   'qwen/qwen3.5-397b-a17b',
   'stepfun-ai/step-3.7-flash',
   'openai/gpt-oss-120b',
