@@ -279,10 +279,8 @@
           <button class="preset-btn" onclick="quickAdd(this.textContent)">qwen/qwen3.5-397b-a17b</button>
           <button class="preset-btn" onclick="quickAdd(this.textContent)">stepfun-ai/step-3.7-flash</button>
           <button class="preset-btn" onclick="quickAdd(this.textContent)">openai/gpt-oss-120b</button>
-          <button class="preset-btn" onclick="quickAdd(this.textContent)">minimaxai/minimax-m3</button>
           <button class="preset-btn" onclick="quickAdd(this.textContent)">nvidia/nemotron-3-ultra-550b-a55b</button>
           <button class="preset-btn" onclick="quickAdd(this.textContent)">thinkingmachines/inkling</button>
-          <button class="preset-btn" onclick="quickAdd(this.textContent)">z-ai/glm-5.2</button>
         </div>
       </div>
     </div>
@@ -326,9 +324,7 @@
         </div>
         <div class="preset-models" id="cfPresetContainer">
           <label>Quick Add:</label>
-          <button class="preset-btn" onclick="quickCfAdd(this.textContent)">@cf/zai-org/glm-5.2</button>
           <button class="preset-btn" onclick="quickCfAdd(this.textContent)">@cf/moonshotai/kimi-k2.7-code</button>
-          <button class="preset-btn" onclick="quickCfAdd(this.textContent)">moonshotai/kimi-k3</button>
           <button class="preset-btn" onclick="quickCfAdd(this.textContent)">@cf/openai/gpt-oss-120b</button>
           <button class="preset-btn" onclick="quickCfAdd(this.textContent)">@cf/zai-org/glm-4.7-flash</button>
         </div>
@@ -385,6 +381,9 @@
           <button class="preset-btn" onclick="quickOpenRouterAdd(this.textContent)">openrouter/free</button>
           <button class="preset-btn" onclick="quickOpenRouterAdd(this.textContent)">poolside/laguna-s-2.1:free</button>
           <button class="preset-btn" onclick="quickOpenRouterAdd(this.textContent)">nvidia/nemotron-3-ultra-550b-a55b:free</button>
+          <button class="preset-btn" onclick="quickOpenRouterAdd(this.textContent)">thinkingmachines/inkling:free</button>
+          <button class="preset-btn" onclick="quickOpenRouterAdd(this.textContent)">z-ai/glm-5.2:free</button>
+          <button class="preset-btn" onclick="quickOpenRouterAdd(this.textContent)">stealth/ox-alpha</button>
         </div>
       </div>
     </div>
@@ -396,35 +395,34 @@ const PRESETS = [
   'qwen/qwen3.5-397b-a17b',
   'stepfun-ai/step-3.7-flash',
   'openai/gpt-oss-120b',
-  'minimaxai/minimax-m3',
   'nvidia/nemotron-3-ultra-550b-a55b',
-  'thinkingmachines/inkling',
-  'z-ai/glm-5.2'
+  'thinkingmachines/inkling'
 ];
 
 const CF_PRESETS = [
-  '@cf/zai-org/glm-5.2',
   '@cf/moonshotai/kimi-k2.7-code',
-  'moonshotai/kimi-k3',
   '@cf/openai/gpt-oss-120b',
   '@cf/zai-org/glm-4.7-flash'
 ];
 
 const GEMINI_PRESETS = ['gemini-3.7-flash', 'gemini-3.6-flash'];
-const OPENROUTER_PRESETS = ['openrouter/free', 'poolside/laguna-s-2.1:free', 'nvidia/nemotron-3-ultra-550b-a55b:free'];
+const OPENROUTER_PRESETS = [
+  'openrouter/free',
+  'poolside/laguna-s-2.1:free',
+  'nvidia/nemotron-3-ultra-550b-a55b:free',
+  'thinkingmachines/inkling:free',
+  'z-ai/glm-5.2:free',
+  'stealth/ox-alpha'
+];
 
 const MODEL_DISPLAY_NAMES = {
   'deepseek-ai/deepseek-v4-flash-0731': 'Deepseek V4 Flash',
   'qwen/qwen3.5-397b-a17b': 'Qwen 3.5 397B A17B',
   'stepfun-ai/step-3.7-flash': 'Step 3.7 Flash',
   'openai/gpt-oss-120b': 'GPT OSS 120B',
-  'minimaxai/minimax-m3': 'MiniMax M3',
   'nvidia/nemotron-3-ultra-550b-a55b': 'Nemotron 3 Ultra',
   'thinkingmachines/inkling': 'Inkling',
-  'z-ai/glm-5.2': 'GLM 5.2',
-  '@cf/zai-org/glm-5.2': 'GLM 5.2',
   '@cf/moonshotai/kimi-k2.7-code': 'Kimi K2.7 Code',
-  'moonshotai/kimi-k3': 'Kimi K3',
   '@cf/openai/gpt-oss-120b': 'GPT OSS 120B',
   '@cf/zai-org/glm-4.7-flash': 'GLM 4.7 Flash',
   'gemini-3.7-flash': 'Gemini 3.7 Flash',
@@ -432,7 +430,10 @@ const MODEL_DISPLAY_NAMES = {
   'gemini-3.5-flash': 'Gemini 3.5 Flash',
   'openrouter/free': 'OpenRouter Free',
   'poolside/laguna-s-2.1:free': 'Laguna S 2.1 Free',
-  'nvidia/nemotron-3-ultra-550b-a55b:free': 'Nemotron 3 Ultra Free'
+  'nvidia/nemotron-3-ultra-550b-a55b:free': 'Nemotron 3 Ultra Free',
+  'thinkingmachines/inkling:free': 'Inkling Free',
+  'z-ai/glm-5.2:free': 'GLM 5.2 Free',
+  'stealth/ox-alpha': 'Ox Alpha'
 };
 
 const MODEL_INFO = {
@@ -440,19 +441,15 @@ const MODEL_INFO = {
   'qwen/qwen3.5-397b-a17b': { max_input_tokens: 262144, max_tokens: 65536 },
   'stepfun-ai/step-3.7-flash': { max_input_tokens: 256000, max_tokens: 256000 },
   'openai/gpt-oss-120b': { max_input_tokens: 128000, max_tokens: 16384 },
-  'minimaxai/minimax-m3': { max_input_tokens: 512000, max_tokens: 128000 },
   'nvidia/nemotron-3-ultra-550b-a55b': { max_input_tokens: 220000, max_tokens: 128000 },
   'thinkingmachines/inkling': { max_input_tokens: 1048576, max_tokens: 16384 },
-  'z-ai/glm-5.2': { max_input_tokens: 180000, max_tokens: 131072 },
 };
 
 // Cloudflare publishes a combined context window rather than a separate completion cap.
 // OpenCode requires both limit.context and limit.output, so opencode_output_tokens mirrors
 // the documented total context capacity for metadata only. Request max_tokens remains separate.
 const CF_MODEL_INFO = {
-  '@cf/zai-org/glm-5.2': { max_input_tokens: 262144, max_tokens: null, opencode_output_tokens: 262144 },
   '@cf/moonshotai/kimi-k2.7-code': { max_input_tokens: 262144, max_tokens: null, opencode_output_tokens: 262144 },
-  'moonshotai/kimi-k3': { max_input_tokens: 1048576, max_tokens: null, opencode_output_tokens: 1048576 },
   '@cf/openai/gpt-oss-120b': { max_input_tokens: 128000, max_tokens: null, opencode_output_tokens: 128000 },
   '@cf/zai-org/glm-4.7-flash': { max_input_tokens: 131072, max_tokens: null, opencode_output_tokens: 131072 },
 };
@@ -466,7 +463,10 @@ const GEMINI_MODEL_INFO = {
 const OPENROUTER_MODEL_INFO = {
   'openrouter/free': { max_input_tokens: 128000, max_tokens: 16384 },
   'poolside/laguna-s-2.1:free': { max_input_tokens: 220000, max_tokens: 65536 },
-  'nvidia/nemotron-3-ultra-550b-a55b:free': { max_input_tokens: 1000000, max_tokens: 128000 }
+  'nvidia/nemotron-3-ultra-550b-a55b:free': { max_input_tokens: 1000000, max_tokens: 128000 },
+  'thinkingmachines/inkling:free': { max_input_tokens: 1048576, max_tokens: 16384 },
+  'z-ai/glm-5.2:free': { max_input_tokens: 262144, max_tokens: 131072 },
+  'stealth/ox-alpha': { max_input_tokens: 1048576, max_tokens: 65536 }
 };
 
 const REASONING_LEVELS = {
@@ -526,27 +526,11 @@ const REASONING_CAPABILITIES = {
       outputVariants: true,
       dropUnsupportedParams: true
     },
-    'minimaxai/minimax-m3': {
-      kind: 'thinking-toggle', key: 'thinking',
-      runtimeReasoning: false,
-      outputVariants: true,
-      dropUnsupportedParams: true,
-      staticLitellmParams: {
-        extra_body: { chat_template_kwargs: { thinking: true } }
-      }
-    },
     'thinkingmachines/inkling': {
       kind: 'provider-default',
       runtimeReasoning: false,
       outputVariants: true,
       dropUnsupportedParams: true
-    },
-    'z-ai/glm-5.2': {
-      kind: 'effort-enum', highest: 'max',
-      runtimeReasoning: false,
-      outputVariants: true,
-      dropUnsupportedParams: true,
-      staticLitellmParams: { extra_body: { reasoning_effort: 'max' } }
     },
     default: {
       kind: 'provider-default',
@@ -566,20 +550,6 @@ const REASONING_CAPABILITIES = {
       }
     },
     '@cf/openai/gpt-oss-120b': {
-      kind: 'effort-enum', highest: 'high',
-      runtimeReasoning: false,
-      outputVariants: true,
-      dropUnsupportedParams: true,
-      staticLitellmParams: { extra_body: { reasoning_effort: 'high' } }
-    },
-    'moonshotai/kimi-k3': {
-      kind: 'effort-enum', highest: 'max',
-      runtimeReasoning: false,
-      outputVariants: true,
-      dropUnsupportedParams: true,
-      staticLitellmParams: { extra_body: { reasoning_effort: 'max' } }
-    },
-    '@cf/zai-org/glm-5.2': {
       kind: 'effort-enum', highest: 'high',
       runtimeReasoning: false,
       outputVariants: true,
@@ -894,7 +864,7 @@ function getCfKeys() {
 function addCfModelRow(value) {
   const div = document.createElement('div');
   div.className = 'cf-model-row';
-  div.innerHTML = `<input class="cf-model-name-input" type="text" placeholder="e.g. @cf/zai-org/glm-5.2" value="${value || ''}"><label class="codex-mini"><input class="codex-enabled-input" type="checkbox" checked>Codex</label><select class="codex-status-select" title="Codex Responses/tool probe status">${codexStatusOptions('unverified')}</select><button class="remove-btn" onclick="this.parentElement.remove(); updateCfPresetHighlights();">&times;</button>`;
+  div.innerHTML = `<input class="cf-model-name-input" type="text" placeholder="e.g. @cf/moonshotai/kimi-k2.7-code" value="${value || ''}"><label class="codex-mini"><input class="codex-enabled-input" type="checkbox" checked>Codex</label><select class="codex-status-select" title="Codex Responses/tool probe status">${codexStatusOptions('unverified')}</select><button class="remove-btn" onclick="this.parentElement.remove(); updateCfPresetHighlights();">&times;</button>`;
   document.getElementById('cfModelList').appendChild(div);
   updateCfPresetHighlights();
 }
@@ -1813,10 +1783,8 @@ const MODELS = [
   'qwen/qwen3.5-397b-a17b',
   'stepfun-ai/step-3.7-flash',
   'openai/gpt-oss-120b',
-  'minimaxai/minimax-m3',
   'nvidia/nemotron-3-ultra-550b-a55b',
   'thinkingmachines/inkling',
-  'z-ai/glm-5.2',
 ];
 
 function fetch(url) {
