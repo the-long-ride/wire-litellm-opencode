@@ -577,10 +577,67 @@ const REASONING_CAPABILITIES = {
     'poolside/laguna-s-2.1:free': {
       kind: 'effort-enum', highest: 'max',
       allowedOpenAIParams: ['reasoning_effort'],
-      runtimeReasoning: true,
-      outputVariants: true
+      runtimeReasoning: false,
+      outputVariants: true,
+      dropUnsupportedParams: true,
+      staticLitellmParams: {
+        extra_body: { reasoning: { effort: 'max' } }
+      }
     },
-    default: { kind: 'provider-default' }
+    'nvidia/nemotron-3-ultra-550b-a55b:free': {
+      kind: 'effort-enum', highest: 'max',
+      allowedOpenAIParams: ['reasoning_effort'],
+      runtimeReasoning: false,
+      outputVariants: true,
+      dropUnsupportedParams: true,
+      staticLitellmParams: {
+        extra_body: { reasoning: { effort: 'max' } }
+      }
+    },
+    'thinkingmachines/inkling:free': {
+      kind: 'effort-enum', highest: 'max',
+      allowedOpenAIParams: ['reasoning_effort'],
+      runtimeReasoning: false,
+      outputVariants: true,
+      dropUnsupportedParams: true,
+      staticLitellmParams: {
+        extra_body: { reasoning: { effort: 'max' } }
+      }
+    },
+    'z-ai/glm-5.2:free': {
+      kind: 'effort-enum', highest: 'max',
+      allowedOpenAIParams: ['reasoning_effort'],
+      runtimeReasoning: false,
+      outputVariants: true,
+      dropUnsupportedParams: true,
+      staticLitellmParams: {
+        extra_body: { reasoning: { effort: 'max' } }
+      }
+    },
+    'stealth/ox-alpha': {
+      kind: 'effort-enum', highest: 'max',
+      allowedOpenAIParams: ['reasoning_effort'],
+      runtimeReasoning: false,
+      outputVariants: true,
+      dropUnsupportedParams: true,
+      staticLitellmParams: {
+        extra_body: { reasoning: { effort: 'max' } }
+      }
+    },
+    'openrouter/free': {
+      kind: 'provider-default',
+      allowedOpenAIParams: ['reasoning_effort'],
+      runtimeReasoning: false,
+      outputVariants: true,
+      dropUnsupportedParams: true
+    },
+    default: {
+      kind: 'provider-default',
+      allowedOpenAIParams: ['reasoning_effort'],
+      runtimeReasoning: false,
+      outputVariants: true,
+      dropUnsupportedParams: true
+    }
   }
 };
 
@@ -605,7 +662,11 @@ function resolveReasoningProfile(provider, model, requestedLevel) {
       isAlias = true;
       note = 'Max aliases to the provider maximum High level.';
     }
-    params = { reasoning_effort: effectiveLevel };
+    if (provider === 'openrouter') {
+      params = { extra_body: { reasoning: { effort: effectiveLevel } } };
+    } else {
+      params = { reasoning_effort: effectiveLevel };
+    }
   } else if (capability.kind === 'effort-with-thinking') {
     if (requested === 'medium' && capability.lowest === 'high') {
       effectiveLevel = 'high';
@@ -1209,6 +1270,8 @@ function buildYamlConfig(deployments, credentials, settings) {
     });
   });
 
+  yaml += '\nlitellm_settings:\n';
+  yaml += '  drop_params: true\n';
   yaml += '\nrouter_settings:\n';
   yaml += `  routing_strategy: ${strategy}\n`;
   yaml += `  num_retries: ${numRetries}\n`;
@@ -1548,7 +1611,7 @@ function buildOpenCodeVariantOptions(deployment, level) {
   const profile = resolveReasoningProfile(deployment.provider, deployment.model, level);
   const options = {};
 
-  // NVIDIA NIM and Cloudflare reasoning controls are fixed in the LiteLLM
+  // NVIDIA NIM, Cloudflare, and OpenRouter reasoning controls are fixed in the LiteLLM
   // deployment-level extra_body. Sending them from OpenCode makes LiteLLM
   // validate provider-specific fields as generic OpenAI parameters and can
   // raise UnsupportedParamsError before the request reaches the provider.
@@ -1560,6 +1623,7 @@ function buildOpenCodeVariantOptions(deployment, level) {
     if (Object.keys(chatTemplate).length > 0) options.chat_template_kwargs = { ...chatTemplate };
     if (extra.thinking_token_budget !== undefined) options.thinking_token_budget = extra.thinking_token_budget;
     if (extra.reasoning_budget !== undefined) options.reasoning_budget = extra.reasoning_budget;
+    if (extra.reasoning) options.reasoning = { ...extra.reasoning };
   }
 
   const outputCandidate = Number(deployment.opencodeOutputLimit || deployment.outputLimit);
