@@ -577,7 +577,7 @@ const REASONING_CAPABILITIES = {
     'poolside/laguna-s-2.1:free': {
       kind: 'effort-enum', highest: 'max',
       allowedOpenAIParams: ['reasoning_effort'],
-      runtimeReasoning: false,
+      runtimeReasoning: true,
       outputVariants: true,
       dropUnsupportedParams: true,
       staticLitellmParams: {
@@ -587,7 +587,7 @@ const REASONING_CAPABILITIES = {
     'nvidia/nemotron-3-ultra-550b-a55b:free': {
       kind: 'effort-enum', highest: 'max',
       allowedOpenAIParams: ['reasoning_effort'],
-      runtimeReasoning: false,
+      runtimeReasoning: true,
       outputVariants: true,
       dropUnsupportedParams: true,
       staticLitellmParams: {
@@ -597,7 +597,7 @@ const REASONING_CAPABILITIES = {
     'thinkingmachines/inkling:free': {
       kind: 'effort-enum', highest: 'max',
       allowedOpenAIParams: ['reasoning_effort'],
-      runtimeReasoning: false,
+      runtimeReasoning: true,
       outputVariants: true,
       dropUnsupportedParams: true,
       staticLitellmParams: {
@@ -607,7 +607,7 @@ const REASONING_CAPABILITIES = {
     'z-ai/glm-5.2:free': {
       kind: 'effort-enum', highest: 'max',
       allowedOpenAIParams: ['reasoning_effort'],
-      runtimeReasoning: false,
+      runtimeReasoning: true,
       outputVariants: true,
       dropUnsupportedParams: true,
       staticLitellmParams: {
@@ -617,7 +617,7 @@ const REASONING_CAPABILITIES = {
     'stealth/ox-alpha': {
       kind: 'effort-enum', highest: 'max',
       allowedOpenAIParams: ['reasoning_effort'],
-      runtimeReasoning: false,
+      runtimeReasoning: true,
       outputVariants: true,
       dropUnsupportedParams: true,
       staticLitellmParams: {
@@ -663,7 +663,7 @@ function resolveReasoningProfile(provider, model, requestedLevel) {
       note = 'Max aliases to the provider maximum High level.';
     }
     if (provider === 'openrouter') {
-      params = { extra_body: { reasoning: { effort: effectiveLevel } } };
+      params = { reasoning_effort: effectiveLevel, extra_body: { reasoning: { effort: effectiveLevel } } };
     } else {
       params = { reasoning_effort: effectiveLevel };
     }
