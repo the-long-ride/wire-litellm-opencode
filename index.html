@@ -327,7 +327,12 @@
           <label>Quick Add:</label>
           <button class="preset-btn" onclick="quickCfAdd(this.textContent)">@cf/moonshotai/kimi-k2.7-code</button>
           <button class="preset-btn" onclick="quickCfAdd(this.textContent)">@cf/openai/gpt-oss-120b</button>
+          <button class="preset-btn" onclick="quickCfAdd(this.textContent)">@cf/openai/gpt-5.6-luna</button>
           <button class="preset-btn" onclick="quickCfAdd(this.textContent)">@cf/zai-org/glm-4.7-flash</button>
+          <button class="preset-btn" onclick="quickCfAdd(this.textContent)">@cf/zai-org/glm-5.3-flash</button>
+          <button class="preset-btn" onclick="quickCfAdd(this.textContent)">@cf/qwen/qwen3.8-27b</button>
+          <button class="preset-btn" onclick="quickCfAdd(this.textContent)">@cf/deepseek-ai/deepseek-v4-flash-0731</button>
+          <button class="preset-btn" onclick="quickCfAdd(this.textContent)">@cf/deepseek-ai/deepseek-v4-pro-0813</button>
         </div>
       </div>
     </div>
@@ -403,7 +408,12 @@ const PRESETS = [
 const CF_PRESETS = [
   '@cf/moonshotai/kimi-k2.7-code',
   '@cf/openai/gpt-oss-120b',
-  '@cf/zai-org/glm-4.7-flash'
+  '@cf/openai/gpt-5.6-luna',
+  '@cf/zai-org/glm-4.7-flash',
+  '@cf/zai-org/glm-5.3-flash',
+  '@cf/qwen/qwen3.8-27b',
+  '@cf/deepseek-ai/deepseek-v4-flash-0731',
+  '@cf/deepseek-ai/deepseek-v4-pro-0813'
 ];
 
 const GEMINI_PRESETS = ['gemini-3.7-flash', 'gemini-3.6-flash'];
@@ -425,7 +435,14 @@ const MODEL_DISPLAY_NAMES = {
   'thinkingmachines/inkling': 'Inkling',
   '@cf/moonshotai/kimi-k2.7-code': 'Kimi K2.7 Code',
   '@cf/openai/gpt-oss-120b': 'GPT OSS 120B',
+  '@cf/openai/gpt-5.6-luna': 'GPT 5.6 Luna',
+  'openai/gpt-5.6-luna': 'GPT 5.6 Luna',
   '@cf/zai-org/glm-4.7-flash': 'GLM 4.7 Flash',
+  '@cf/zai-org/glm-5.3-flash': 'GLM 5.3 Flash',
+  '@cf/qwen/qwen3.8-27b': 'Qwen 3.8 27B',
+  'cf/qwen/qwen3.8-27b': 'Qwen 3.8 27B',
+  '@cf/deepseek-ai/deepseek-v4-flash-0731': 'Deepseek V4 Flash',
+  '@cf/deepseek-ai/deepseek-v4-pro-0813': 'DeepSeek V4 Pro',
   'gemini-3.7-flash': 'Gemini 3.7 Flash',
   'gemini-3.6-flash': 'Gemini 3.6 Flash',
   'gemini-3.5-flash': 'Gemini 3.5 Flash',
@@ -452,7 +469,14 @@ const MODEL_INFO = {
 const CF_MODEL_INFO = {
   '@cf/moonshotai/kimi-k2.7-code': { max_input_tokens: 262144, max_tokens: null, opencode_output_tokens: 262144 },
   '@cf/openai/gpt-oss-120b': { max_input_tokens: 128000, max_tokens: null, opencode_output_tokens: 128000 },
+  '@cf/openai/gpt-5.6-luna': { max_input_tokens: 1050000, max_tokens: 128000, opencode_output_tokens: 128000, supports_vision: true },
+  'openai/gpt-5.6-luna': { max_input_tokens: 1050000, max_tokens: 128000, opencode_output_tokens: 128000, supports_vision: true },
   '@cf/zai-org/glm-4.7-flash': { max_input_tokens: 131072, max_tokens: null, opencode_output_tokens: 131072 },
+  '@cf/zai-org/glm-5.3-flash': { max_input_tokens: 1048576, max_tokens: null, opencode_output_tokens: 1048576, supports_vision: true },
+  '@cf/qwen/qwen3.8-27b': { max_input_tokens: 262144, max_tokens: null, opencode_output_tokens: 262144, supports_vision: true },
+  'cf/qwen/qwen3.8-27b': { max_input_tokens: 262144, max_tokens: null, opencode_output_tokens: 262144, supports_vision: true },
+  '@cf/deepseek-ai/deepseek-v4-flash-0731': { max_input_tokens: 1310720, max_tokens: null, opencode_output_tokens: 1310720 },
+  '@cf/deepseek-ai/deepseek-v4-pro-0813': { max_input_tokens: 1048000, max_tokens: null, opencode_output_tokens: 1048000 },
 };
 
 const GEMINI_MODEL_INFO = {
@@ -569,12 +593,73 @@ const REASONING_CAPABILITIES = {
       dropUnsupportedParams: true,
       staticLitellmParams: { extra_body: { reasoning_effort: 'high' } }
     },
+    '@cf/openai/gpt-5.6-luna': {
+      kind: 'effort-enum', highest: 'high',
+      runtimeReasoning: false,
+      outputVariants: true,
+      dropUnsupportedParams: true,
+      staticLitellmParams: { extra_body: { reasoning_effort: 'high' } }
+    },
+    'openai/gpt-5.6-luna': {
+      kind: 'effort-enum', highest: 'high',
+      runtimeReasoning: false,
+      outputVariants: true,
+      dropUnsupportedParams: true,
+      staticLitellmParams: { extra_body: { reasoning_effort: 'high' } }
+    },
     '@cf/zai-org/glm-4.7-flash': {
       kind: 'effort-enum', highest: 'high',
       runtimeReasoning: false,
       outputVariants: true,
       dropUnsupportedParams: true,
       staticLitellmParams: { extra_body: { reasoning_effort: 'high' } }
+    },
+    '@cf/zai-org/glm-5.3-flash': {
+      kind: 'effort-enum', highest: 'high',
+      runtimeReasoning: false,
+      outputVariants: true,
+      dropUnsupportedParams: true,
+      staticLitellmParams: { extra_body: { reasoning_effort: 'high' } }
+    },
+    '@cf/qwen/qwen3.8-27b': {
+      kind: 'effort-enum', highest: 'high',
+      runtimeReasoning: false,
+      outputVariants: true,
+      dropUnsupportedParams: true,
+      staticLitellmParams: { extra_body: { reasoning_effort: 'high' } }
+    },
+    'cf/qwen/qwen3.8-27b': {
+      kind: 'effort-enum', highest: 'high',
+      runtimeReasoning: false,
+      outputVariants: true,
+      dropUnsupportedParams: true,
+      staticLitellmParams: { extra_body: { reasoning_effort: 'high' } }
+    },
+    '@cf/deepseek-ai/deepseek-v4-flash-0731': {
+      kind: 'effort-with-thinking',
+      lowest: 'high',
+      highest: 'max',
+      runtimeReasoning: false,
+      outputVariants: true,
+      dropUnsupportedParams: true,
+      staticLitellmParams: {
+        extra_body: {
+          chat_template_kwargs: { thinking: true, reasoning_effort: 'max' }
+        }
+      }
+    },
+    '@cf/deepseek-ai/deepseek-v4-pro-0813': {
+      kind: 'effort-with-thinking',
+      lowest: 'high',
+      highest: 'max',
+      runtimeReasoning: false,
+      outputVariants: true,
+      dropUnsupportedParams: true,
+      staticLitellmParams: {
+        extra_body: {
+          chat_template_kwargs: { thinking: true, reasoning_effort: 'max' }
+        }
+      }
     },
     default: {
       kind: 'provider-default',
@@ -652,7 +737,10 @@ function normalizeReasoningLevel(level) {
 function resolveReasoningProfile(provider, model, requestedLevel) {
   const requested = normalizeReasoningLevel(requestedLevel);
   const providerCaps = REASONING_CAPABILITIES[provider] || { default: { kind: 'provider-default' } };
-  const capability = providerCaps[model] || providerCaps.default || { kind: 'provider-default' };
+  const canonicalModel = provider === 'cloudflare'
+    ? (model.startsWith('@cf/') ? model : (model.startsWith('cf/') ? `@${model}` : `@cf/${model}`))
+    : model;
+  const capability = providerCaps[model] || providerCaps[canonicalModel] || providerCaps.default || { kind: 'provider-default' };
   let effectiveLevel = requested;
   let isAlias = false;
   let verified = true;
@@ -793,9 +881,10 @@ function codexStatusOptions(selected) {
 
 function modelMetadata(provider, model) {
   const infoSource = provider === 'nvidia' ? MODEL_INFO : provider === 'cloudflare' ? CF_MODEL_INFO : provider === 'gemini' ? GEMINI_MODEL_INFO : OPENROUTER_MODEL_INFO;
-  const info = infoSource[model] || {};
-  const baseName = MODEL_DISPLAY_NAMES[model] || (model.split('/').pop() || model).replace(/[-_]/g, ' ').replace(/\w/g, ch => ch.toUpperCase());
+  let info = infoSource[model] || {};
+  let baseName = MODEL_DISPLAY_NAMES[model];
   if (provider === 'nvidia') {
+    baseName = baseName || (model.split('/').pop() || model).replace(/[-_]/g, ' ').replace(/ \w/g, ch => ch.toUpperCase());
     return {
       upstreamModel: `nvidia_nim/${model}`,
       proxyModel: model,
@@ -805,16 +894,21 @@ function modelMetadata(provider, model) {
     };
   }
   if (provider === 'cloudflare') {
-    const normalized = model.replace(/^@cf\//, '');
+    const canonicalModel = model.startsWith('@cf/') ? model : (model.startsWith('cf/') ? `@${model}` : `@cf/${model}`);
+    const normalized = canonicalModel.replace(/^@cf\//, '');
+    info = CF_MODEL_INFO[model] || CF_MODEL_INFO[canonicalModel] || {};
+    baseName = MODEL_DISPLAY_NAMES[model] || MODEL_DISPLAY_NAMES[canonicalModel] || (normalized.split('/').pop() || normalized).replace(/[-_]/g, ' ').replace(/ \w/g, ch => ch.toUpperCase());
     return {
-      upstreamModel: `openai/${model}`,
+      upstreamModel: `openai/${canonicalModel}`,
       proxyModel: `cloudflare/${normalized}`,
       displayName: `Cloudflare - ${baseName}`,
       contextLimit: info.max_input_tokens || null,
       outputLimit: info.max_tokens || null,
-      opencodeOutputLimit: info.opencode_output_tokens || info.max_tokens || null
+      opencodeOutputLimit: info.opencode_output_tokens || info.max_tokens || null,
+      supportsVision: Boolean(info.supports_vision)
     };
   }
+  baseName = baseName || (model.split('/').pop() || model).replace(/[-_]/g, ' ').replace(/ \w/g, ch => ch.toUpperCase());
   if (provider === 'gemini') {
     return {
       upstreamModel: `gemini/${model}`,
@@ -935,14 +1029,21 @@ function addCfModelRow(value) {
 
 function updateCfPresetHighlights() {
   const active = [...document.querySelectorAll('.cf-model-name-input')].map(i => i.value.trim());
+  const activeCanonical = active.map(m => m.startsWith('@cf/') ? m : (m.startsWith('cf/') ? `@${m}` : `@cf/${m}`));
   document.querySelectorAll('#cfPresetContainer .preset-btn').forEach(btn => {
-    btn.classList.toggle('active', active.includes(btn.textContent.trim()));
+    const text = btn.textContent.trim();
+    const textCanonical = text.startsWith('@cf/') ? text : (text.startsWith('cf/') ? `@${text}` : `@cf/${text}`);
+    btn.classList.toggle('active', active.includes(text) || activeCanonical.includes(textCanonical));
   });
 }
 
 function quickCfAdd(name) {
   const existing = [...document.querySelectorAll('.cf-model-name-input')].map(i => i.value.trim());
-  if (existing.includes(name)) return;
+  const nameCanonical = name.startsWith('@cf/') ? name : (name.startsWith('cf/') ? `@${name}` : `@cf/${name}`);
+  if (existing.some(m => {
+    const mCanonical = m.startsWith('@cf/') ? m : (m.startsWith('cf/') ? `@${m}` : `@cf/${m}`);
+    return m === name || mCanonical === nameCanonical;
+  })) return;
   addCfModelRow(name);
 }
 
@@ -1488,7 +1589,7 @@ function buildCodexCatalogEntry(deployment, priority) {
   return {
     prefer_websockets: false,
     support_verbosity: false,
-    input_modalities: ['text'],
+    input_modalities: deployment.supportsVision ? ['text', 'image'] : ['text'],
     supports_image_detail_original: false,
     truncation_policy: { mode: 'tokens', limit: 10000 },
     supports_parallel_tool_calls: false,
@@ -1659,6 +1760,9 @@ function buildOpenCodeConfig(deployments, settings) {
       name: deployment.displayName,
       limit: { context, output }
     };
+    if (deployment.supportsVision) {
+      entry.modalities = { input: ['text', 'image'], output: ['text'] };
+    }
     const variants = buildOpenCodeVariants(deployment);
     if (Object.keys(variants).length > 0) {
       entry.reasoning = true;
