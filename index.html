@@ -276,6 +276,7 @@
         <div class="preset-models">
           <label>Quick Add:</label>
           <button class="preset-btn" onclick="quickAdd(this.textContent)">deepseek-ai/deepseek-v4-flash-0731</button>
+          <button class="preset-btn" onclick="quickAdd(this.textContent)">deepseek-ai/deepseek-v4-pro-0813</button>
           <button class="preset-btn" onclick="quickAdd(this.textContent)">qwen/qwen3.5-397b-a17b</button>
           <button class="preset-btn" onclick="quickAdd(this.textContent)">stepfun-ai/step-3.7-flash</button>
           <button class="preset-btn" onclick="quickAdd(this.textContent)">openai/gpt-oss-120b</button>
@@ -383,7 +384,6 @@
           <button class="preset-btn" onclick="quickOpenRouterAdd(this.textContent)">nvidia/nemotron-3-ultra-550b-a55b:free</button>
           <button class="preset-btn" onclick="quickOpenRouterAdd(this.textContent)">thinkingmachines/inkling:free</button>
           <button class="preset-btn" onclick="quickOpenRouterAdd(this.textContent)">z-ai/glm-5.2:free</button>
-          <button class="preset-btn" onclick="quickOpenRouterAdd(this.textContent)">stealth/ox-alpha</button>
         </div>
       </div>
     </div>
@@ -392,6 +392,7 @@
 <script>
 const PRESETS = [
   'deepseek-ai/deepseek-v4-flash-0731',
+  'deepseek-ai/deepseek-v4-pro-0813',
   'qwen/qwen3.5-397b-a17b',
   'stepfun-ai/step-3.7-flash',
   'openai/gpt-oss-120b',
@@ -411,12 +412,12 @@ const OPENROUTER_PRESETS = [
   'poolside/laguna-s-2.1:free',
   'nvidia/nemotron-3-ultra-550b-a55b:free',
   'thinkingmachines/inkling:free',
-  'z-ai/glm-5.2:free',
-  'stealth/ox-alpha'
+  'z-ai/glm-5.2:free'
 ];
 
 const MODEL_DISPLAY_NAMES = {
   'deepseek-ai/deepseek-v4-flash-0731': 'Deepseek V4 Flash',
+  'deepseek-ai/deepseek-v4-pro-0813': 'DeepSeek V4 Pro',
   'qwen/qwen3.5-397b-a17b': 'Qwen 3.5 397B A17B',
   'stepfun-ai/step-3.7-flash': 'Step 3.7 Flash',
   'openai/gpt-oss-120b': 'GPT OSS 120B',
@@ -432,12 +433,12 @@ const MODEL_DISPLAY_NAMES = {
   'poolside/laguna-s-2.1:free': 'Laguna S 2.1 Free',
   'nvidia/nemotron-3-ultra-550b-a55b:free': 'Nemotron 3 Ultra Free',
   'thinkingmachines/inkling:free': 'Inkling Free',
-  'z-ai/glm-5.2:free': 'GLM 5.2 Free',
-  'stealth/ox-alpha': 'Ox Alpha'
+  'z-ai/glm-5.2:free': 'GLM 5.2 Free'
 };
 
 const MODEL_INFO = {
   'deepseek-ai/deepseek-v4-flash-0731': { max_input_tokens: 1000000, max_tokens: 384000 },
+  'deepseek-ai/deepseek-v4-pro-0813': { max_input_tokens: 200000, max_tokens: 384000 },
   'qwen/qwen3.5-397b-a17b': { max_input_tokens: 262144, max_tokens: 65536 },
   'stepfun-ai/step-3.7-flash': { max_input_tokens: 256000, max_tokens: 256000 },
   'openai/gpt-oss-120b': { max_input_tokens: 128000, max_tokens: 16384 },
@@ -465,8 +466,7 @@ const OPENROUTER_MODEL_INFO = {
   'poolside/laguna-s-2.1:free': { max_input_tokens: 220000, max_tokens: 65536 },
   'nvidia/nemotron-3-ultra-550b-a55b:free': { max_input_tokens: 1000000, max_tokens: 128000 },
   'thinkingmachines/inkling:free': { max_input_tokens: 1048576, max_tokens: 16384 },
-  'z-ai/glm-5.2:free': { max_input_tokens: 262144, max_tokens: 131072 },
-  'stealth/ox-alpha': { max_input_tokens: 1048576, max_tokens: 65536 }
+  'z-ai/glm-5.2:free': { max_input_tokens: 262144, max_tokens: 131072 }
 };
 
 const REASONING_LEVELS = {
@@ -499,6 +499,19 @@ const REASONING_CAPABILITIES = {
       staticLitellmParams: { extra_body: { reasoning_effort: 'high' } }
     },
     'deepseek-ai/deepseek-v4-flash-0731': {
+      kind: 'effort-with-thinking',
+      lowest: 'high',
+      highest: 'max',
+      runtimeReasoning: false,
+      outputVariants: true,
+      dropUnsupportedParams: true,
+      staticLitellmParams: {
+        extra_body: {
+          chat_template_kwargs: { thinking: true, reasoning_effort: 'max' }
+        }
+      }
+    },
+    'deepseek-ai/deepseek-v4-pro-0813': {
       kind: 'effort-with-thinking',
       lowest: 'high',
       highest: 'max',
@@ -605,16 +618,6 @@ const REASONING_CAPABILITIES = {
       }
     },
     'z-ai/glm-5.2:free': {
-      kind: 'effort-enum', highest: 'max',
-      allowedOpenAIParams: ['reasoning_effort'],
-      runtimeReasoning: true,
-      outputVariants: true,
-      dropUnsupportedParams: true,
-      staticLitellmParams: {
-        extra_body: { reasoning: { effort: 'max' } }
-      }
-    },
-    'stealth/ox-alpha': {
       kind: 'effort-enum', highest: 'max',
       allowedOpenAIParams: ['reasoning_effort'],
       runtimeReasoning: true,
@@ -1844,6 +1847,7 @@ const path = require('path');
 
 const MODELS = [
   'deepseek-ai/deepseek-v4-flash-0731',
+  'deepseek-ai/deepseek-v4-pro-0813',
   'qwen/qwen3.5-397b-a17b',
   'stepfun-ai/step-3.7-flash',
   'openai/gpt-oss-120b',
