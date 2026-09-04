@@ -698,7 +698,7 @@ function resolveReasoningProfile(provider, model, requestedLevel) {
       }
     };
   } else if (capability.kind === 'thinking-toggle') {
-    params = { extra_body: { chat_template_kwargs: { [capability.key]: true } };
+    params = { extra_body: { chat_template_kwargs: { [capability.key]: true } } };
     note = 'This model exposes a thinking toggle; Medium/High/Max differ only by the requested profile label and output allowance.';
     verified = false;
   } else {
