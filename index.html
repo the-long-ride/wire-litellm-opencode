@@ -277,6 +277,7 @@
           <label>Quick Add:</label>
           <button class="preset-btn" onclick="quickAdd(this.textContent)">deepseek-ai/deepseek-v4-flash-0731</button>
           <button class="preset-btn" onclick="quickAdd(this.textContent)">deepseek-ai/deepseek-v4-pro-0813</button>
+          <button class="preset-btn" onclick="quickAdd(this.textContent)">moonshotai/kimi-k3</button>
           <button class="preset-btn" onclick="quickAdd(this.textContent)">qwen/qwen3.5-397b-a17b</button>
           <button class="preset-btn" onclick="quickAdd(this.textContent)">stepfun-ai/step-3.7-flash</button>
           <button class="preset-btn" onclick="quickAdd(this.textContent)">openai/gpt-oss-120b</button>
@@ -312,27 +313,16 @@
             <input type="text" id="cfMaxRetries" value="1" title="Safe mainly before partial output begins">
           </div>
         </div>
-        <div class="reliability-note">Kimi K2.7: <code>stream_timeout</code> detects silent chunk gaps. Do not blindly replay a stream after visible output or a side-effecting tool call.</div>
         <div class="models-section" id="cfModelList" style="margin-top:10px;"></div>
         <div class="actions">
           <button class="btn btn-secondary" onclick="addCfModelRow()">+ Add Model</button>
           <button class="btn btn-secondary" onclick="addCfPresetModels()">+ All Presets</button>
           <button class="btn btn-error" onclick="clearCfModels()">Clear Models</button>
         </div>
-        <div class="actions">
-          <button class="btn btn-secondary" onclick="copyKimiStreamProbe(event)">Copy Kimi Probe</button>
-          <button class="btn btn-secondary" onclick="downloadKimiStreamProbe()">Download Kimi Probe</button>
-        </div>
         <div class="preset-models" id="cfPresetContainer">
           <label>Quick Add:</label>
-          <button class="preset-btn" onclick="quickCfAdd(this.textContent)">@cf/moonshotai/kimi-k2.7-code</button>
           <button class="preset-btn" onclick="quickCfAdd(this.textContent)">@cf/openai/gpt-oss-120b</button>
-          <button class="preset-btn" onclick="quickCfAdd(this.textContent)">@cf/openai/gpt-5.6-luna</button>
           <button class="preset-btn" onclick="quickCfAdd(this.textContent)">@cf/zai-org/glm-4.7-flash</button>
-          <button class="preset-btn" onclick="quickCfAdd(this.textContent)">@cf/zai-org/glm-5.3-flash</button>
-          <button class="preset-btn" onclick="quickCfAdd(this.textContent)">@cf/qwen/qwen3.8-27b</button>
-          <button class="preset-btn" onclick="quickCfAdd(this.textContent)">@cf/deepseek-ai/deepseek-v4-flash-0731</button>
-          <button class="preset-btn" onclick="quickCfAdd(this.textContent)">@cf/deepseek-ai/deepseek-v4-pro-0813</button>
         </div>
       </div>
     </div>
@@ -357,6 +347,7 @@
         </div>
         <div class="preset-models" id="geminiPresetContainer">
           <label>Quick Add:</label>
+          <button class="preset-btn" onclick="quickGeminiAdd(this.textContent)">gemini-3.8-flash</button>
           <button class="preset-btn" onclick="quickGeminiAdd(this.textContent)">gemini-3.7-flash</button>
           <button class="preset-btn" onclick="quickGeminiAdd(this.textContent)">gemini-3.6-flash</button>
           <button class="preset-btn" onclick="quickGeminiAdd(this.textContent)">gemini-3.5-flash</button>
@@ -385,6 +376,7 @@
         <div class="preset-models" id="openrouterPresetContainer">
           <label>Quick Add:</label>
           <button class="preset-btn" onclick="quickOpenRouterAdd(this.textContent)">openrouter/free</button>
+          <button class="preset-btn" onclick="quickOpenRouterAdd(this.textContent)">minimax/minimax-m3:free</button>
           <button class="preset-btn" onclick="quickOpenRouterAdd(this.textContent)">poolside/laguna-s-2.1:free</button>
           <button class="preset-btn" onclick="quickOpenRouterAdd(this.textContent)">nvidia/nemotron-3-ultra-550b-a55b:free</button>
           <button class="preset-btn" onclick="quickOpenRouterAdd(this.textContent)">thinkingmachines/inkling:free</button>
@@ -398,6 +390,7 @@
 const PRESETS = [
   'deepseek-ai/deepseek-v4-flash-0731',
   'deepseek-ai/deepseek-v4-pro-0813',
+  'moonshotai/kimi-k3',
   'qwen/qwen3.5-397b-a17b',
   'stepfun-ai/step-3.7-flash',
   'openai/gpt-oss-120b',
@@ -406,19 +399,14 @@ const PRESETS = [
 ];
 
 const CF_PRESETS = [
-  '@cf/moonshotai/kimi-k2.7-code',
   '@cf/openai/gpt-oss-120b',
-  '@cf/openai/gpt-5.6-luna',
-  '@cf/zai-org/glm-4.7-flash',
-  '@cf/zai-org/glm-5.3-flash',
-  '@cf/qwen/qwen3.8-27b',
-  '@cf/deepseek-ai/deepseek-v4-flash-0731',
-  '@cf/deepseek-ai/deepseek-v4-pro-0813'
+  '@cf/zai-org/glm-4.7-flash'
 ];
 
-const GEMINI_PRESETS = ['gemini-3.7-flash', 'gemini-3.6-flash'];
+const GEMINI_PRESETS = ['gemini-3.8-flash', 'gemini-3.7-flash', 'gemini-3.6-flash'];
 const OPENROUTER_PRESETS = [
   'openrouter/free',
+  'minimax/minimax-m3:free',
   'poolside/laguna-s-2.1:free',
   'nvidia/nemotron-3-ultra-550b-a55b:free',
   'thinkingmachines/inkling:free',
@@ -428,25 +416,20 @@ const OPENROUTER_PRESETS = [
 const MODEL_DISPLAY_NAMES = {
   'deepseek-ai/deepseek-v4-flash-0731': 'Deepseek V4 Flash',
   'deepseek-ai/deepseek-v4-pro-0813': 'DeepSeek V4 Pro',
+  'moonshotai/kimi-k3': 'Kimi K3',
   'qwen/qwen3.5-397b-a17b': 'Qwen 3.5 397B A17B',
   'stepfun-ai/step-3.7-flash': 'Step 3.7 Flash',
   'openai/gpt-oss-120b': 'GPT OSS 120B',
   'nvidia/nemotron-3-ultra-550b-a55b': 'Nemotron 3 Ultra',
   'thinkingmachines/inkling': 'Inkling',
-  '@cf/moonshotai/kimi-k2.7-code': 'Kimi K2.7 Code',
   '@cf/openai/gpt-oss-120b': 'GPT OSS 120B',
-  '@cf/openai/gpt-5.6-luna': 'GPT 5.6 Luna',
-  'openai/gpt-5.6-luna': 'GPT 5.6 Luna',
   '@cf/zai-org/glm-4.7-flash': 'GLM 4.7 Flash',
-  '@cf/zai-org/glm-5.3-flash': 'GLM 5.3 Flash',
-  '@cf/qwen/qwen3.8-27b': 'Qwen 3.8 27B',
-  'cf/qwen/qwen3.8-27b': 'Qwen 3.8 27B',
-  '@cf/deepseek-ai/deepseek-v4-flash-0731': 'Deepseek V4 Flash',
-  '@cf/deepseek-ai/deepseek-v4-pro-0813': 'DeepSeek V4 Pro',
+  'gemini-3.8-flash': 'Gemini 3.8 Flash',
   'gemini-3.7-flash': 'Gemini 3.7 Flash',
   'gemini-3.6-flash': 'Gemini 3.6 Flash',
   'gemini-3.5-flash': 'Gemini 3.5 Flash',
   'openrouter/free': 'OpenRouter Free',
+  'minimax/minimax-m3:free': 'MiniMax M3 Free',
   'poolside/laguna-s-2.1:free': 'Laguna S 2.1 Free',
   'nvidia/nemotron-3-ultra-550b-a55b:free': 'Nemotron 3 Ultra Free',
   'thinkingmachines/inkling:free': 'Inkling Free',
@@ -456,6 +439,7 @@ const MODEL_DISPLAY_NAMES = {
 const MODEL_INFO = {
   'deepseek-ai/deepseek-v4-flash-0731': { max_input_tokens: 1000000, max_tokens: 384000 },
   'deepseek-ai/deepseek-v4-pro-0813': { max_input_tokens: 200000, max_tokens: 384000 },
+  'moonshotai/kimi-k3': { max_input_tokens: 1048576, max_tokens: 65536, supports_vision: true },
   'qwen/qwen3.5-397b-a17b': { max_input_tokens: 262144, max_tokens: 65536 },
   'stepfun-ai/step-3.7-flash': { max_input_tokens: 256000, max_tokens: 256000 },
   'openai/gpt-oss-120b': { max_input_tokens: 128000, max_tokens: 16384 },
@@ -467,19 +451,12 @@ const MODEL_INFO = {
 // OpenCode requires both limit.context and limit.output, so opencode_output_tokens mirrors
 // the documented total context capacity for metadata only. Request max_tokens remains separate.
 const CF_MODEL_INFO = {
-  '@cf/moonshotai/kimi-k2.7-code': { max_input_tokens: 262144, max_tokens: null, opencode_output_tokens: 262144 },
   '@cf/openai/gpt-oss-120b': { max_input_tokens: 128000, max_tokens: null, opencode_output_tokens: 128000 },
-  '@cf/openai/gpt-5.6-luna': { max_input_tokens: 1050000, max_tokens: 128000, opencode_output_tokens: 128000, supports_vision: true },
-  'openai/gpt-5.6-luna': { max_input_tokens: 1050000, max_tokens: 128000, opencode_output_tokens: 128000, supports_vision: true },
   '@cf/zai-org/glm-4.7-flash': { max_input_tokens: 131072, max_tokens: null, opencode_output_tokens: 131072 },
-  '@cf/zai-org/glm-5.3-flash': { max_input_tokens: 1048576, max_tokens: null, opencode_output_tokens: 1048576, supports_vision: true },
-  '@cf/qwen/qwen3.8-27b': { max_input_tokens: 262144, max_tokens: null, opencode_output_tokens: 262144, supports_vision: true },
-  'cf/qwen/qwen3.8-27b': { max_input_tokens: 262144, max_tokens: null, opencode_output_tokens: 262144, supports_vision: true },
-  '@cf/deepseek-ai/deepseek-v4-flash-0731': { max_input_tokens: 1310720, max_tokens: null, opencode_output_tokens: 1310720 },
-  '@cf/deepseek-ai/deepseek-v4-pro-0813': { max_input_tokens: 1048000, max_tokens: null, opencode_output_tokens: 1048000 },
 };
 
 const GEMINI_MODEL_INFO = {
+  'gemini-3.8-flash': { max_input_tokens: 1048576, max_tokens: 65536 },
   'gemini-3.7-flash': { max_input_tokens: 1048576, max_tokens: 65536 },
   'gemini-3.6-flash': { max_input_tokens: 1048576, max_tokens: 65536 },
   'gemini-3.5-flash': { max_input_tokens: 1048576, max_tokens: 65536 }
@@ -487,6 +464,7 @@ const GEMINI_MODEL_INFO = {
 
 const OPENROUTER_MODEL_INFO = {
   'openrouter/free': { max_input_tokens: 128000, max_tokens: 16384 },
+  'minimax/minimax-m3:free': { max_input_tokens: 1048576, max_tokens: null },
   'poolside/laguna-s-2.1:free': { max_input_tokens: 220000, max_tokens: 65536 },
   'nvidia/nemotron-3-ultra-550b-a55b:free': { max_input_tokens: 1000000, max_tokens: 128000 },
   'thinkingmachines/inkling:free': { max_input_tokens: 1048576, max_tokens: 16384 },
@@ -548,6 +526,13 @@ const REASONING_CAPABILITIES = {
         }
       }
     },
+    'moonshotai/kimi-k3': {
+      kind: 'effort-enum', highest: 'max',
+      runtimeReasoning: false,
+      outputVariants: true,
+      dropUnsupportedParams: true,
+      staticLitellmParams: { extra_body: { reasoning_effort: 'max' } }
+    },
     'qwen/qwen3.5-397b-a17b': {
       kind: 'thinking-toggle', key: 'enable_thinking',
       runtimeReasoning: false,
@@ -577,30 +562,7 @@ const REASONING_CAPABILITIES = {
     }
   },
   cloudflare: {
-    '@cf/moonshotai/kimi-k2.7-code': {
-      kind: 'kimi-thinking',
-      runtimeReasoning: false,
-      outputVariants: true,
-      dropUnsupportedParams: true,
-      staticLitellmParams: {
-        extra_body: { chat_template_kwargs: { thinking: 'max' } }
-      }
-    },
     '@cf/openai/gpt-oss-120b': {
-      kind: 'effort-enum', highest: 'high',
-      runtimeReasoning: false,
-      outputVariants: true,
-      dropUnsupportedParams: true,
-      staticLitellmParams: { extra_body: { reasoning_effort: 'high' } }
-    },
-    '@cf/openai/gpt-5.6-luna': {
-      kind: 'effort-enum', highest: 'high',
-      runtimeReasoning: false,
-      outputVariants: true,
-      dropUnsupportedParams: true,
-      staticLitellmParams: { extra_body: { reasoning_effort: 'high' } }
-    },
-    'openai/gpt-5.6-luna': {
       kind: 'effort-enum', highest: 'high',
       runtimeReasoning: false,
       outputVariants: true,
@@ -614,53 +576,6 @@ const REASONING_CAPABILITIES = {
       dropUnsupportedParams: true,
       staticLitellmParams: { extra_body: { reasoning_effort: 'high' } }
     },
-    '@cf/zai-org/glm-5.3-flash': {
-      kind: 'effort-enum', highest: 'high',
-      runtimeReasoning: false,
-      outputVariants: true,
-      dropUnsupportedParams: true,
-      staticLitellmParams: { extra_body: { reasoning_effort: 'high' } }
-    },
-    '@cf/qwen/qwen3.8-27b': {
-      kind: 'effort-enum', highest: 'high',
-      runtimeReasoning: false,
-      outputVariants: true,
-      dropUnsupportedParams: true,
-      staticLitellmParams: { extra_body: { reasoning_effort: 'high' } }
-    },
-    'cf/qwen/qwen3.8-27b': {
-      kind: 'effort-enum', highest: 'high',
-      runtimeReasoning: false,
-      outputVariants: true,
-      dropUnsupportedParams: true,
-      staticLitellmParams: { extra_body: { reasoning_effort: 'high' } }
-    },
-    '@cf/deepseek-ai/deepseek-v4-flash-0731': {
-      kind: 'effort-with-thinking',
-      lowest: 'high',
-      highest: 'max',
-      runtimeReasoning: false,
-      outputVariants: true,
-      dropUnsupportedParams: true,
-      staticLitellmParams: {
-        extra_body: {
-          chat_template_kwargs: { thinking: true, reasoning_effort: 'max' }
-        }
-      }
-    },
-    '@cf/deepseek-ai/deepseek-v4-pro-0813': {
-      kind: 'effort-with-thinking',
-      lowest: 'high',
-      highest: 'max',
-      runtimeReasoning: false,
-      outputVariants: true,
-      dropUnsupportedParams: true,
-      staticLitellmParams: {
-        extra_body: {
-          chat_template_kwargs: { thinking: true, reasoning_effort: 'max' }
-        }
-      }
-    },
     default: {
       kind: 'provider-default',
       runtimeReasoning: false,
@@ -672,6 +587,16 @@ const REASONING_CAPABILITIES = {
     default: { kind: 'effort-enum', highest: 'high', runtimeReasoning: true, outputVariants: true }
   },
   openrouter: {
+    'minimax/minimax-m3:free': {
+      kind: 'effort-enum', highest: 'max',
+      allowedOpenAIParams: ['reasoning_effort'],
+      runtimeReasoning: true,
+      outputVariants: true,
+      dropUnsupportedParams: true,
+      staticLitellmParams: {
+        extra_body: { reasoning: { effort: 'max' } }
+      }
+    },
     'poolside/laguna-s-2.1:free': {
       kind: 'effort-enum', highest: 'max',
       allowedOpenAIParams: ['reasoning_effort'],
@@ -832,13 +757,10 @@ function appendLiteLLMDynamicParamPolicy(deployment, indent) {
   const spaces = ' '.repeat(indent);
   let yaml = '';
   if (policy.allowedOpenAIParams.length > 0) {
-    yaml += `${spaces}allowed_openai_params:
-`;
-    policy.allowedOpenAIParams.forEach(param => { yaml += `${spaces}  - ${param}
-`; });
+    yaml += `${spaces}allowed_openai_params:\n`;
+    policy.allowedOpenAIParams.forEach(param => { yaml += `${spaces}  - ${param}\n`; });
   }
-  if (policy.dropUnsupportedParams) yaml += `${spaces}drop_params: true
-`;
+  if (policy.dropUnsupportedParams) yaml += `${spaces}drop_params: true\n`;
   if (Object.keys(policy.staticLitellmParams).length > 0) {
     yaml += appendYamlObject(policy.staticLitellmParams, indent);
   }
@@ -890,7 +812,8 @@ function modelMetadata(provider, model) {
       proxyModel: model,
       displayName: `NVIDIA NIM - ${baseName}`,
       contextLimit: info.max_input_tokens || null,
-      outputLimit: info.max_tokens || null
+      outputLimit: info.max_tokens || null,
+      supportsVision: Boolean(info.supports_vision)
     };
   }
   if (provider === 'cloudflare') {
@@ -1022,7 +945,7 @@ function getCfKeys() {
 function addCfModelRow(value) {
   const div = document.createElement('div');
   div.className = 'cf-model-row';
-  div.innerHTML = `<input class="cf-model-name-input" type="text" placeholder="e.g. @cf/moonshotai/kimi-k2.7-code" value="${value || ''}"><label class="codex-mini"><input class="codex-enabled-input" type="checkbox" checked>Codex</label><select class="codex-status-select" title="Codex Responses/tool probe status">${codexStatusOptions('unverified')}</select><button class="remove-btn" onclick="this.parentElement.remove(); updateCfPresetHighlights();">&times;</button>`;
+  div.innerHTML = `<input class="cf-model-name-input" type="text" placeholder="e.g. @cf/openai/gpt-oss-120b" value="${value || ''}"><label class="codex-mini"><input class="codex-enabled-input" type="checkbox" checked>Codex</label><select class="codex-status-select" title="Codex Responses/tool probe status">${codexStatusOptions('unverified')}</select><button class="remove-btn" onclick="this.parentElement.remove(); updateCfPresetHighlights();">&times;</button>`;
   document.getElementById('cfModelList').appendChild(div);
   updateCfPresetHighlights();
 }
@@ -1067,7 +990,7 @@ function getGeminiModels() {
 function addGeminiModelRow(value) {
   const div = document.createElement('div');
   div.className = 'gemini-model-row';
-  div.innerHTML = `<input class="gemini-model-name-input" type="text" placeholder="e.g. gemini-3.6-flash" value="${value || ''}"><label class="codex-mini"><input class="codex-enabled-input" type="checkbox" checked>Codex</label><select class="codex-status-select" title="Codex Responses/tool probe status">${codexStatusOptions('unverified')}</select><button class="remove-btn" onclick="this.parentElement.remove(); updateGeminiPresetHighlights();">&times;</button>`;
+  div.innerHTML = `<input class="gemini-model-name-input" type="text" placeholder="e.g. gemini-3.8-flash" value="${value || ''}"><label class="codex-mini"><input class="codex-enabled-input" type="checkbox" checked>Codex</label><select class="codex-status-select" title="Codex Responses/tool probe status">${codexStatusOptions('unverified')}</select><button class="remove-btn" onclick="this.parentElement.remove(); updateGeminiPresetHighlights();">&times;</button>`;
   document.getElementById('geminiModelList').appendChild(div);
   updateGeminiPresetHighlights();
 }
@@ -1105,7 +1028,7 @@ function getOpenRouterModels() {
 function addOpenRouterModelRow(value) {
   const div = document.createElement('div');
   div.className = 'openrouter-model-row';
-  div.innerHTML = `<input class="openrouter-model-name-input" type="text" placeholder="e.g. poolside/laguna-s-2.1:free" value="${value || ''}"><label class="codex-mini"><input class="codex-enabled-input" type="checkbox" checked>Codex</label><select class="codex-status-select" title="Codex Responses/tool probe status">${codexStatusOptions('unverified')}</select><button class="remove-btn" onclick="this.parentElement.remove(); updateOpenRouterPresetHighlights();">&times;</button>`;
+  div.innerHTML = `<input class="openrouter-model-name-input" type="text" placeholder="e.g. minimax/minimax-m3:free" value="${value || ''}"><label class="codex-mini"><input class="codex-enabled-input" type="checkbox" checked>Codex</label><select class="codex-status-select" title="Codex Responses/tool probe status">${codexStatusOptions('unverified')}</select><button class="remove-btn" onclick="this.parentElement.remove(); updateOpenRouterPresetHighlights();">&times;</button>`;
   document.getElementById('openrouterModelList').appendChild(div);
   updateOpenRouterPresetHighlights();
 }
@@ -1387,158 +1310,6 @@ function buildYamlConfig(deployments, credentials, settings) {
   yaml += '\ngeneral_settings:\n';
   yaml += '  master_key: os.environ/LITELLM_MASTER_KEY\n';
   return yaml;
-}
-
-function buildKimiStreamProbe(options) {
-  const opts = options || {};
-  const baseUrl = opts.baseUrl || 'http://localhost:4000/v1';
-  const apiKey = opts.apiKey || 'anything';
-  const model = opts.model || 'cloudflare/moonshotai/kimi-k2.7-code';
-  const idleTimeoutSeconds = Number(opts.idleTimeoutSeconds || document.getElementById('cfStreamTimeout')?.value || 300);
-  return `#!/usr/bin/env python3
-"""Diagnose Kimi K2.7 streaming and tool-call completion through LiteLLM.
-
-Install dependency: python -m pip install httpx
-The probe declares a deterministic tool but NEVER executes it.
-"""
-import json
-import sys
-import time
-
-import httpx
-
-BASE_URL = ${JSON.stringify(baseUrl)}.rstrip("/")
-API_KEY = ${JSON.stringify(apiKey)}
-MODEL = ${JSON.stringify(model)}
-STREAM_IDLE_TIMEOUT = ${idleTimeoutSeconds}
-
-payload = {
-    "model": MODEL,
-    "stream": True,
-    "messages": [
-        {
-            "role": "user",
-            "content": "Call the record_probe tool exactly once with status='ok'. Do not answer with ordinary text.",
-        }
-    ],
-    "tools": [
-        {
-            "type": "function",
-            "function": {
-                "name": "record_probe",
-                "description": "Records a harmless probe result. PROBE DOES NOT EXECUTE TOOLS.",
-                "parameters": {
-                    "type": "object",
-                    "properties": {"status": {"type": "string", "enum": ["ok"]}},
-                    "required": ["status"],
-                    "additionalProperties": False,
-                },
-            },
-        }
-    ],
-    "tool_choice": "required",
-    "parallel_tool_calls": False,
-}
-
-headers = {
-    "Authorization": f"Bearer {API_KEY}",
-    "Content-Type": "application/json",
-    "Accept": "text/event-stream",
-}
-
-timeout = httpx.Timeout(connect=30.0, read=float(STREAM_IDLE_TIMEOUT), write=30.0, pool=30.0)
-tool_call_fragments = {}
-finish_reason = None
-saw_done = False
-last_event_at = time.monotonic()
-
-try:
-    with httpx.Client(timeout=timeout) as client:
-        with client.stream("POST", f"{BASE_URL}/chat/completions", headers=headers, json=payload) as response:
-            response.raise_for_status()
-            print(f"HTTP {response.status_code}; model={MODEL}; idle_timeout={STREAM_IDLE_TIMEOUT}s")
-            for line in response.iter_lines():
-                now = time.monotonic()
-                gap = now - last_event_at
-                last_event_at = now
-                if not line:
-                    continue
-                print(f"chunk_gap={gap:.3f}s raw={line[:240]}")
-                if not line.startswith("data:"):
-                    continue
-                data = line[5:].strip()
-                if data == "[DONE]":
-                    saw_done = True
-                    print("terminal=[DONE]")
-                    break
-                event = json.loads(data)
-                choices = event.get("choices") or []
-                if not choices:
-                    continue
-                choice = choices[0]
-                delta = choice.get("delta") or {}
-                reasoning = delta.get("reasoning") or delta.get("reasoning_content")
-                if reasoning:
-                    print(f"reasoning_delta={reasoning[:160]!r}")
-                if delta.get("content"):
-                    print(f"content_delta={delta['content'][:160]!r}")
-                for tool_call in delta.get("tool_calls") or []:
-                    index = tool_call.get("index", 0)
-                    record = tool_call_fragments.setdefault(index, {"id": "", "name": "", "arguments": ""})
-                    if tool_call.get("id"):
-                        record["id"] += tool_call["id"]
-                    function = tool_call.get("function") or {}
-                    if function.get("name"):
-                        record["name"] += function["name"]
-                    if function.get("arguments"):
-                        record["arguments"] += function["arguments"]
-                    print(f"tool_delta[{index}]={record}")
-                if choice.get("finish_reason"):
-                    finish_reason = choice["finish_reason"]
-                    print(f"finish_reason={finish_reason}")
-except httpx.ReadTimeout:
-    print(f"FAIL: no stream data arrived for {STREAM_IDLE_TIMEOUT} seconds", file=sys.stderr)
-    sys.exit(2)
-except (httpx.HTTPError, json.JSONDecodeError) as exc:
-    print(f"FAIL: stream/protocol error: {exc}", file=sys.stderr)
-    sys.exit(3)
-
-if not saw_done:
-    print("FAIL: stream closed without [DONE]", file=sys.stderr)
-    sys.exit(4)
-if not finish_reason:
-    print("FAIL: stream reached [DONE] without finish_reason", file=sys.stderr)
-    sys.exit(5)
-if not tool_call_fragments:
-    print("FAIL: no tool call was produced", file=sys.stderr)
-    sys.exit(6)
-
-for index, record in sorted(tool_call_fragments.items()):
-    arguments = record["arguments"]
-    try:
-        parsed = json.loads(arguments)
-    except json.JSONDecodeError as exc:
-        print(f"FAIL: incomplete tool JSON at index {index}: {exc}; raw={arguments!r}", file=sys.stderr)
-        sys.exit(7)
-    print(f"complete_tool_call[{index}] name={record['name']!r} arguments={parsed!r}")
-
-print("PASS: terminal stream and complete tool-call JSON observed.")
-print("PROBE DOES NOT EXECUTE TOOLS; no side effects occurred.")
-`;
-}
-
-function copyKimiStreamProbe(ev) {
-  const probe = buildKimiStreamProbe();
-  const target = ev && ev.currentTarget ? ev.currentTarget : null;
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(probe).then(() => flashBtn(target, 'Copied!')).catch(() => fallbackCopy(probe, target));
-  } else {
-    fallbackCopy(probe, target);
-  }
-}
-
-function downloadKimiStreamProbe() {
-  downloadText(buildKimiStreamProbe(), 'kimi-stream-probe.py', 'text/x-python');
 }
 
 function downloadYaml(yaml, filename) {
@@ -1905,7 +1676,7 @@ if (-not $SkipCodex) {
 }
 
 function buildCodexBundleManifest() {
-  return `# LiteLLM to Codex bundle\n\n## Files\n\n- config.yaml: LiteLLM deployments and proxy authentication.\n- opencode.jsonc: the same aliases for OpenCode.\n- config.toml: Codex custom LiteLLM provider using the Responses wire API.\n- codex-model-catalog.json: the same Codex-enabled aliases.\n- start-litellm.ps1: starts the proxy locally or with Docker.\n- setup-codex.ps1: installs the Codex files in ~/.codex and sets LITELLM_MASTER_KEY.\n- test-codex-connection.ps1: checks health, aliases, Responses, optional tools, and Codex CLI.\n\n## Windows setup\n\n1. Keep every file in this folder. Replace the REPLACE_ME provider credentials in config.yaml.\n2. Install LiteLLM when needed: py -m pip install "litellm[proxy]"\n3. In PowerShell, permit these local scripts for the current process: Set-ExecutionPolicy -Scope Process Bypass\n4. Start LiteLLM and leave the window open: .\\start-litellm.ps1\n5. Open a second PowerShell window in this folder: .\\setup-codex.ps1 -PersistKey\n6. Verify the proxy and Codex: .\\test-codex-connection.ps1\n7. After the plain check passes, probe function-tool transport: .\\test-codex-connection.ps1 -TestTools\n\nTo test a different generated alias, pass -Model, for example:\n\n    .\\test-codex-connection.ps1 -Model gemini-3.6-flash\n\nThe alias set is generated from one registry and is identical across config.yaml, opencode.jsonc, and codex-model-catalog.json. Unverified models are intentionally visible but have not yet proven Codex Responses and tool compatibility. The test script never executes a returned probe tool.\n`;
+  return `# LiteLLM to Codex bundle\n\n## Files\n\n- config.yaml: LiteLLM deployments and proxy authentication.\n- opencode.jsonc: the same aliases for OpenCode.\n- config.toml: Codex custom LiteLLM provider using the Responses wire API.\n- codex-model-catalog.json: the same Codex-enabled aliases.\n- start-litellm.ps1: starts the proxy locally or with Docker.\n- setup-codex.ps1: installs the Codex files in ~/.codex and sets LITELLM_MASTER_KEY.\n- test-codex-connection.ps1: checks health, aliases, Responses, optional tools, and Codex CLI.\n\n## Windows setup\n\n1. Keep every file in this folder. Replace the REPLACE_ME provider credentials in config.yaml.\n2. Install LiteLLM when needed: py -m pip install "litellm[proxy]"\n3. In PowerShell, permit these local scripts for the current process: Set-ExecutionPolicy -Scope Process Bypass\n4. Start LiteLLM and leave the window open: .\\start-litellm.ps1\n5. Open a second PowerShell window in this folder: .\\setup-codex.ps1 -PersistKey\n6. Verify the proxy and Codex: .\\test-codex-connection.ps1\n7. After the plain check passes, probe function-tool transport: .\\test-codex-connection.ps1 -TestTools\n\nTo test a different generated alias, pass -Model, for example:\n\n    .\\test-codex-connection.ps1 -Model gemini-3.8-flash\n\nThe alias set is generated from one registry and is identical across config.yaml, opencode.jsonc, and codex-model-catalog.json. Unverified models are intentionally visible but have not yet proven Codex Responses and tool compatibility. The test script never executes a returned probe tool.\n`;
 }
 
 function downloadStartLiteLLM() { downloadText(buildStartLiteLLMPowerShell(getOutputSettings().masterKey), 'start-litellm.ps1', 'text/plain'); }
@@ -1952,6 +1723,7 @@ const path = require('path');
 const MODELS = [
   'deepseek-ai/deepseek-v4-flash-0731',
   'deepseek-ai/deepseek-v4-pro-0813',
+  'moonshotai/kimi-k3',
   'qwen/qwen3.5-397b-a17b',
   'stepfun-ai/step-3.7-flash',
   'openai/gpt-oss-120b',
